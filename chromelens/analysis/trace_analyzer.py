@@ -19,12 +19,29 @@ class TraceAnalyzer:
         """Extract insights from a list of Chrome trace events."""
         insight = TraceInsight()
 
+        BIN_SIZE_MS = 100
+        cpu_bins: dict[int, float] = {}
+
         for event in trace_events:
             ph = event.get("ph", "")
             cat = event.get("cat", "")
             name = event.get("name", "")
             dur = event.get("dur", 0)  # microseconds
             ts = event.get("ts", 0)
+
+            ts_ms = ts / 1000.0
+
+            # CPU time (sum duration for complete events into 100ms bins)
+            if ph == "X" and dur > 0:
+                bin_idx = int(ts_ms // BIN_SIZE_MS)
+                cpu_bins[bin_idx] = cpu_bins.get(bin_idx, 0.0) + (dur / 1000.0)
+
+            # Memory timeline
+            if name == "UpdateCounters" and "data" in event.get("args", {}):
+                js_mem = event["args"]["data"].get("jsHeapSizeUsed")
+                if js_mem is not None:
+                    from chromelens.profiler import TimeSeriesMetric
+                    insight.memory_timeline.append(TimeSeriesMetric(timestamp_ms=ts_ms, value=float(js_mem)))
 
             # Long tasks (X = complete events on main thread)
             if ph == "X" and dur >= LONG_TASK_THRESHOLD_US:
@@ -74,9 +91,32 @@ class TraceAnalyzer:
             step = len(insight.filmstrip) / 10.0
             insight.filmstrip = [insight.filmstrip[int(i * step)] for i in range(10)]
 
-        # Normalize timestamps for filmstrip relative to start
+        # Find the absolute start time across trace to normalize all timelines
+        start_ts = 0.0
         if insight.filmstrip:
             start_ts = insight.filmstrip[0].timestamp_ms
+        elif cpu_bins:
+            start_ts = min(cpu_bins.keys()) * BIN_SIZE_MS
+
+        from chromelens.profiler import TimeSeriesMetric
+
+        # Populate CPU timeline from bins
+        for bin_idx, duration in sorted(cpu_bins.items()):
+            bin_ts = (bin_idx * BIN_SIZE_MS) - start_ts
+            if bin_ts >= 0:
+                insight.cpu_timeline.append(TimeSeriesMetric(timestamp_ms=bin_ts, value=duration))
+
+        # Normalize memory timeline
+        normalized_mem = []
+        for point in insight.memory_timeline:
+            rel_ts = point.timestamp_ms - start_ts
+            if rel_ts >= 0:
+                point.timestamp_ms = rel_ts
+                normalized_mem.append(point)
+        insight.memory_timeline = sorted(normalized_mem, key=lambda p: p.timestamp_ms)
+
+        # Normalize filmstrip timestamps
+        if insight.filmstrip:
             for frame in insight.filmstrip:
                 frame.timestamp_ms -= start_ts
 

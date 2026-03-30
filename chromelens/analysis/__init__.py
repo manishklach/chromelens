@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from chromelens.profiler import TimeSeriesMetric
+
 
 @dataclass(slots=True)
 class LongTask:
@@ -41,6 +43,8 @@ class TraceInsight:
 
     long_tasks: list[LongTask] = field(default_factory=list)
     filmstrip: list[FilmstripFrame] = field(default_factory=list)
+    cpu_timeline: list[TimeSeriesMetric] = field(default_factory=list)
+    memory_timeline: list[TimeSeriesMetric] = field(default_factory=list)
     total_blocking_time_ms: float = 0.0
     layout_count: int = 0
     style_recalc_count: int = 0

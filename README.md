@@ -17,9 +17,21 @@ Unlike standard tools (like Lighthouse) that test single URLs and provide surfac
 - **Full-Site Crawling:** Automatically discovers and profiles pages using `sitemap.xml` and recursive Playwright link extraction. Discards external links and obeys `robots.txt`.
 - **Deep Trace Profiling:** Uses CDP `Performance.enable` and `Tracing.start` to capture low-level Chrome rendering metrics (Long Tasks, Layout Count, GC Pauses, Script Duration).
 - **Web Vitals Extraction:** Surfaces LCP, FCP, CLS, TTFB, and DOM interactive metrics via `PerformanceObserver`.
+- **Interaction Flow Profiling:** Trace and analyze multi-step user journeys (like searching, filling forms, and navigating Single Page Apps) with granular performance telemetry synced to visual frames!
 - **Third-Party Impact Scoring:** Groups all network requests by domain, highlighting which third-party scripts block rendering or bloat your page weight across the site.
-- **Interactive Dashboard:** Generates a single-file, zero-dependency HTML dashboard report with performance color coding, charts (built with Chart.js), and per-page deep dives.
+- **Interactive Dashboard:** Generates a single-file, zero-dependency HTML dashboard report with performance color coding, dynamic hardware timeline charts (built with Chart.js), and per-page deep dives.
 - **CI/CD Ready:** Includes a rich terminal summary output for fast regression detection in your pipelines.
+
+---
+
+## 🌊 Interaction Flow Profiling
+ChromeLens includes an advanced mode where you can bypass the standard static crawl and write programmatic Playwright scripts to emulate full user journeys (like adding an item to a cart or navigating a complex SPA).
+
+![Flipkart Flow Demo Execution](assets/flipkart_flow.png)
+
+*Watch the dynamic chart react to simulated user interactions on Flipkart: [Demo Video](assets/flipkart_flow.webp)*
+
+By implementing `interaction_fn` inside `profile_flow`, the engine captures the Javascript Heap accumulations and Main Thread CPU activity specifically triggered by the user input, producing a hardware timeline synced perfectly to rendering filmstrips!
 
 ---
 

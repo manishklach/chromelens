@@ -61,6 +61,24 @@ class ConsoleMessage:
     url: str = ""
 
 
+@dataclass(slots=True)
+class SystemMetrics:
+    """Snapshot of hardware metrics from browser processes."""
+
+    renderer_cpu_time_sec: float = 0.0
+    renderer_memory_bytes: int = 0
+    gpu_memory_bytes: int = 0
+    gpu_cpu_time_sec: float = 0.0
+
+
+@dataclass(slots=True)
+class TimeSeriesMetric:
+    """Time-series data point for charting."""
+
+    timestamp_ms: float
+    value: float
+
+
 @dataclass
 class PageProfile:
     """Complete performance profile for a single page."""
@@ -70,6 +88,9 @@ class PageProfile:
     title: str = ""
     vitals: WebVitals = field(default_factory=WebVitals)
     cdp_metrics: CDPMetrics = field(default_factory=CDPMetrics)
+    system_metrics: SystemMetrics = field(default_factory=SystemMetrics)
+    cpu_timeline: list[TimeSeriesMetric] = field(default_factory=list)
+    memory_timeline: list[TimeSeriesMetric] = field(default_factory=list)
     network_requests: list[NetworkRequest] = field(default_factory=list)
     console_messages: list[ConsoleMessage] = field(default_factory=list)
     trace_events: list[dict] = field(default_factory=list)  # type: ignore[type-arg]

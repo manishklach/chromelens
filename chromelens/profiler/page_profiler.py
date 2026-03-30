@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 from playwright.sync_api import Browser, sync_playwright
@@ -38,6 +38,8 @@ TRACE_CATEGORIES = [
     "blink.user_timing",
     "v8.execute",
     "loading",
+    "disabled-by-default-devtools.timeline",
+    "disabled-by-default-v8.gc"
 ]
 
 FILMSTRIP_CATEGORY = "disabled-by-default-devtools.screenshot"
@@ -128,6 +130,25 @@ class PageProfiler:
             raw_metrics = cdp.send("Performance.getMetrics")
             profile.cdp_metrics = self._parse_cdp_metrics(raw_metrics)
 
+            # Collect System Metrics
+            try:
+                proc_info = cdp.send("SystemInfo.getProcessInfo")
+                for p in proc_info.get("processInfo", []):
+                    ptype = p.get("type", "").lower()
+                    if "renderer" in ptype:
+                        profile.system_metrics.renderer_cpu_time_sec += p.get("cpuTime", 0)
+                        profile.system_metrics.renderer_memory_bytes += p.get("privateMemory", 0)
+                    elif "gpu" in ptype:
+                        profile.system_metrics.gpu_cpu_time_sec += p.get("cpuTime", 0)
+                        profile.system_metrics.gpu_memory_bytes += p.get("privateMemory", 0)
+            except Exception as exc:
+                LOGGER.warning("Could not gather SystemInfo metrics: %s", exc)
+
+            if profile.system_metrics.renderer_cpu_time_sec == 0:
+                profile.system_metrics.renderer_cpu_time_sec = profile.cdp_metrics.task_duration_ms / 1000.0
+            if profile.system_metrics.renderer_memory_bytes == 0:
+                profile.system_metrics.renderer_memory_bytes = profile.cdp_metrics.js_heap_used_bytes
+
             # Collect Web Vitals
             try:
                 vitals_raw = page.evaluate(EXTRACT_WEB_VITALS_JS)
@@ -160,6 +181,112 @@ class PageProfiler:
 
         except Exception as exc:
             LOGGER.error("Error profiling %s: %s", url, exc)
+            profile.error = str(exc)
+
+        profile.profile_duration_ms = (time.perf_counter() - start_time) * 1000
+        return profile
+
+    def profile_flow(self, name: str, start_url: str, interaction_fn: Callable[[Any], None]) -> PageProfile:
+        """Profile an interactive user journey flow (e.g. clicks, scrolls)."""
+        assert self._browser is not None, "Use PageProfiler as a context manager"
+        profile = PageProfile(url=name)
+        start_time = time.perf_counter()
+
+        try:
+            context = self._browser.new_context(
+                user_agent="ChromeLens/0.1 (performance-audit)",
+                viewport={"width": 1440, "height": 900},
+            )
+            page = context.new_page()
+
+            requests_log: list[NetworkRequest] = []
+            page.on("response", lambda resp: self._on_response(resp, requests_log, start_url))
+
+            console_log: list[ConsoleMessage] = []
+            page.on("console", lambda msg: console_log.append(
+                ConsoleMessage(level=msg.type, text=msg.text, url=name)
+            ))
+
+            cdp = context.new_cdp_session(page)
+            cdp.send("Performance.enable")
+
+            trace_events: list[dict[str, Any]] = []
+            cdp.on("Tracing.dataCollected", lambda params: trace_events.extend(params.get("value", [])))
+
+            categories = list(TRACE_CATEGORIES)
+            if self.filmstrip:
+                categories.append(FILMSTRIP_CATEGORY)
+
+            cdp.send("Tracing.start", {
+                "categories": ",".join(categories),
+                "options": "sampling-frequency=10000",
+            })
+
+            # Navigate to the starting point
+            response = page.goto(start_url, wait_until="networkidle", timeout=30000)
+            if response:
+                profile.status_code = response.status
+
+            # Execute the arbitrary user interactions mid-trace!
+            interaction_fn(page)
+
+            page.wait_for_timeout(1500)
+            profile.title = f"Flow: {name}"
+
+            cdp.send("Tracing.end")
+            page.wait_for_timeout(500)
+
+            raw_metrics = cdp.send("Performance.getMetrics")
+            profile.cdp_metrics = self._parse_cdp_metrics(raw_metrics)
+
+            try:
+                proc_info = cdp.send("SystemInfo.getProcessInfo")
+                for p in proc_info.get("processInfo", []):
+                    ptype = p.get("type", "").lower()
+                    if "renderer" in ptype:
+                        profile.system_metrics.renderer_cpu_time_sec += p.get("cpuTime", 0)
+                        profile.system_metrics.renderer_memory_bytes += p.get("privateMemory", 0)
+                    elif "gpu" in ptype:
+                        profile.system_metrics.gpu_cpu_time_sec += p.get("cpuTime", 0)
+                        profile.system_metrics.gpu_memory_bytes += p.get("privateMemory", 0)
+            except Exception as exc:
+                LOGGER.warning("Could not gather SystemInfo metrics: %s", exc)
+
+            if profile.system_metrics.renderer_cpu_time_sec == 0:
+                profile.system_metrics.renderer_cpu_time_sec = profile.cdp_metrics.task_duration_ms / 1000.0
+            if profile.system_metrics.renderer_memory_bytes == 0:
+                profile.system_metrics.renderer_memory_bytes = profile.cdp_metrics.js_heap_used_bytes
+
+            try:
+                vitals_raw = page.evaluate(EXTRACT_WEB_VITALS_JS)
+                profile.vitals = WebVitals(
+                    lcp_ms=float(vitals_raw.get("lcp_ms", 0)),
+                    fcp_ms=float(vitals_raw.get("fcp_ms", 0)),
+                    cls=float(vitals_raw.get("cls", 0)),
+                    ttfb_ms=float(vitals_raw.get("ttfb_ms", 0)),
+                    dom_interactive_ms=float(vitals_raw.get("dom_interactive_ms", 0)),
+                    dom_complete_ms=float(vitals_raw.get("dom_complete_ms", 0)),
+                    load_event_ms=float(vitals_raw.get("load_event_ms", 0)),
+                )
+            except Exception as exc:
+                LOGGER.warning("Failed to extract Web Vitals for flow %s: %s", name, exc)
+
+            if self.screenshot_dir:
+                self.screenshot_dir.mkdir(parents=True, exist_ok=True)
+                safe_name = name.replace(" ", "_").lower()
+                ss_path = self.screenshot_dir / f"{safe_name}.png"
+                page.screenshot(path=str(ss_path), full_page=True)
+                profile.screenshot_path = str(ss_path)
+
+            profile.network_requests = requests_log
+            profile.console_messages = console_log
+            profile.trace_events = trace_events
+
+            cdp.detach()
+            context.close()
+
+        except Exception as exc:
+            LOGGER.error("Error profiling flow %s: %s", name, exc)
             profile.error = str(exc)
 
         profile.profile_duration_ms = (time.perf_counter() - start_time) * 1000
