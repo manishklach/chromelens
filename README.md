@@ -6,7 +6,9 @@ ChromeLens is a Python CLI tool that crawls an entire website, captures Chrome D
 
 Unlike standard tools (like Lighthouse) that test single URLs and provide surface-level Web Vitals, ChromeLens profiles **every reachable page** on your site, extracting sub-metric signals like V8 JavaScript compile times, layout thrashing events, and granular third-party script impact.
 
-<!-- Insert sample screenshot of the dashboard here later -->
+![ChromeLens HTML Dashboard](assets/demo_screenshot.png)
+
+*Watch the dashboard in action: [Dashboard Walkthrough Animation](assets/demo_walkthrough.webp)*
 
 ---
 
