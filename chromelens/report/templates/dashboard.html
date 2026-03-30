@@ -237,6 +237,34 @@
   .vital-item .vital-value { font-size: 1.2rem; font-weight: 700; }
   .vital-item .vital-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
 
+  /* Filmstrip */
+  .filmstrip-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 16px 0;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .filmstrip-frame {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .filmstrip-frame img {
+    height: 120px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #000;
+  }
+  .filmstrip-timestamp {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
   /* Footer */
   .footer {
     text-align: center;
@@ -418,6 +446,17 @@
           <li>{{ issue }}</li>
           {% endfor %}
         </ul>
+        {% endif %}
+
+        {% if page.insight.filmstrip %}
+        <div class="filmstrip-container">
+          {% for frame in page.insight.filmstrip %}
+          <div class="filmstrip-frame">
+            <img src="data:image/jpeg;base64,{{ frame.base64_data }}" alt="Trace Frame at {{ frame.timestamp_ms }}ms" loading="lazy">
+            <span class="filmstrip-timestamp">{{ "%.0f"|format(frame.timestamp_ms) }}ms</span>
+          </div>
+          {% endfor %}
+        </div>
         {% endif %}
       </div>
     </details>

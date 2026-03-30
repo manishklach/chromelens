@@ -36,6 +36,7 @@ def main(verbose: bool) -> None:
 @click.option("--max-depth", default=3, help="Maximum crawl depth.")
 @click.option("--headless/--headed", default=True, help="Run browser in headless mode.")
 @click.option("--screenshots/--no-screenshots", default=True, help="Capture page screenshots.")
+@click.option("--filmstrip/--no-filmstrip", default=True, help="Capture rendering filmstrip in report.")
 def crawl(
     url: str,
     output: str,
@@ -43,6 +44,7 @@ def crawl(
     max_depth: int,
     headless: bool,
     screenshots: bool,
+    filmstrip: bool,
 ) -> None:
     """Crawl a website and generate a performance report.
 
@@ -74,7 +76,7 @@ def crawl(
     analyzer = TraceAnalyzer()
     trace_insights = []
 
-    with PageProfiler(headless=headless, screenshot_dir=screenshot_dir) as profiler:
+    with PageProfiler(headless=headless, screenshot_dir=screenshot_dir, filmstrip=filmstrip) as profiler:
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -111,7 +113,7 @@ def crawl(
     print_cli_report(report)
 
     html_path = output_dir / "report.html"
-    generate_html_report(report, profiles, html_path)
+    generate_html_report(report, profiles, trace_insights, html_path)
     console.print(f"  📄 HTML report: [cyan]{html_path}[/]")
     console.print()
 

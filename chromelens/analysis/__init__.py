@@ -28,10 +28,19 @@ class ThirdPartyImpact:
 
 
 @dataclass(slots=True)
+class FilmstripFrame:
+    """A visual screenshot frame from the trace."""
+
+    timestamp_ms: float
+    base64_data: str
+
+
+@dataclass(slots=True)
 class TraceInsight:
     """Extracted insights from a Chrome trace."""
 
     long_tasks: list[LongTask] = field(default_factory=list)
+    filmstrip: list[FilmstripFrame] = field(default_factory=list)
     total_blocking_time_ms: float = 0.0
     layout_count: int = 0
     style_recalc_count: int = 0

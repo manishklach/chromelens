@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from . import LongTask, TraceInsight
+from . import FilmstripFrame, LongTask, TraceInsight
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +58,26 @@ class TraceAnalyzer:
             if name in ("Paint", "PaintImage", "CompositeLayers") and ph == "X":
                 insight.paint_count += 1
 
+            # Filmstrip Screenshots
+            if name == "Screenshot" and "snapshot" in event.get("args", {}):
+                insight.filmstrip.append(FilmstripFrame(
+                    timestamp_ms=ts / 1000.0,
+                    base64_data=event["args"]["snapshot"]
+                ))
+
         # Sort long tasks by duration descending
         insight.long_tasks.sort(key=lambda t: t.duration_ms, reverse=True)
+
+        # Downsample filmstrip to max 10 frames evenly spaced
+        insight.filmstrip.sort(key=lambda f: f.timestamp_ms)
+        if len(insight.filmstrip) > 10:
+            step = len(insight.filmstrip) / 10.0
+            insight.filmstrip = [insight.filmstrip[int(i * step)] for i in range(10)]
+
+        # Normalize timestamps for filmstrip relative to start
+        if insight.filmstrip:
+            start_ts = insight.filmstrip[0].timestamp_ms
+            for frame in insight.filmstrip:
+                frame.timestamp_ms -= start_ts
 
         return insight

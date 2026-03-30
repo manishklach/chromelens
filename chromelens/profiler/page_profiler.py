@@ -40,6 +40,8 @@ TRACE_CATEGORIES = [
     "loading",
 ]
 
+FILMSTRIP_CATEGORY = "disabled-by-default-devtools.screenshot"
+
 
 class PageProfiler:
     """Captures full performance profiles for individual pages via Playwright + CDP."""
@@ -48,9 +50,11 @@ class PageProfiler:
         self,
         headless: bool = True,
         screenshot_dir: Path | None = None,
+        filmstrip: bool = True,
     ) -> None:
         self.headless = headless
         self.screenshot_dir = screenshot_dir
+        self.filmstrip = filmstrip
         self._pw_context: Any = None
         self._browser: Browser | None = None
 
@@ -96,8 +100,12 @@ class PageProfiler:
             trace_events: list[dict[str, Any]] = []
             cdp.on("Tracing.dataCollected", lambda params: trace_events.extend(params.get("value", [])))
 
+            categories = list(TRACE_CATEGORIES)
+            if self.filmstrip:
+                categories.append(FILMSTRIP_CATEGORY)
+
             cdp.send("Tracing.start", {
-                "categories": ",".join(TRACE_CATEGORIES),
+                "categories": ",".join(categories),
                 "options": "sampling-frequency=10000",
             })
 

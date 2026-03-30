@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from jinja2 import Environment, FileSystemLoader
 
-from chromelens.analysis import PageHealthScore, SiteHealthReport
+from chromelens.analysis import PageHealthScore, SiteHealthReport, TraceInsight
 from chromelens.profiler import PageProfile
 
 LOGGER = logging.getLogger(__name__)
@@ -23,11 +23,13 @@ class PageDetail:
 
     profile: PageProfile
     score: PageHealthScore
+    insight: TraceInsight
 
 
 def generate_html_report(
     report: SiteHealthReport,
     profiles: list[PageProfile],
+    insights: list[TraceInsight],
     output_path: Path,
 ) -> Path:
     """Generate a single-file HTML dashboard report."""
@@ -36,11 +38,13 @@ def generate_html_report(
 
     # Build page details (matched by URL)
     profile_map = {p.url: p for p in profiles}
+    insight_map = {p.url: i for p, i in zip(profiles, insights)}
     page_details: list[PageDetail] = []
     for ps in sorted(report.page_scores, key=lambda x: x.score):
         profile = profile_map.get(ps.url)
-        if profile:
-            page_details.append(PageDetail(profile=profile, score=ps))
+        insight = insight_map.get(ps.url)
+        if profile and insight:
+            page_details.append(PageDetail(profile=profile, score=ps, insight=insight))
 
     # Chart data
     page_labels = [
