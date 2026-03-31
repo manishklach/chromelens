@@ -102,9 +102,12 @@
       <li><strong>Reporting & Pipeline Output:</strong> All this raw data is compiled into native, highly-visual Jinja2 HTML dashboards and flattened JSON artifacts ready for CI pipeline integration.</li>
     </ol>
 
-    <h2>The Multi-Step "Interaction Flow" Tracer</h2>
-    <p>The biggest failure of standard performance profilers is that they only check the "Initial Load." But modern web apps exist long after the load event—users type in forms, filter lists, and add items to shopping carts.</p>
     <p>ChromeLens pioneers <strong>Interactive Flow Profiling</strong>. You can programmatically script Playwright interactions directly middle-of-trace. The result? A perfectly synchronized filmstrip recording married to a Main-Thread CPU utilization chart, allowing you to debug exactly why a simple button-click caused a 4-second layout thrash.</p>
+    
+    <h2>Real-World Emulation: Network & Device Throttling</h2>
+    <p>Web performance doesn't happen in a vacuum. Your users aren't always on 1Gbps fiber connections using the latest M3 MacBooks. They are on patchy airport Wi-Fi, 3G connections in transit, or throttled public hotspots.</p>
+    <p>ChromeLens now includes native support for <strong>Hardware and Network Emulation</strong>. By interfacing directly with the CDP <code>Network.emulateNetworkConditions</code> domain, ChromeLens can simulate any connection topology—from <code>lte</code> and <code>fast-3g</code> to specific presets like <code>starbucks</code>, <code>mcdonalds</code>, and <code>airport</code>.</p>
+    <p>Combined with <strong>Mobile Device Emulation</strong> (e.g., Pixel 5, iPhone 13), ChromeLens allows you to capture the "Hydration Penalty" exactly as it happens on a low-end mobile device, exposing how CPU-bound JavaScript execution becomes the primary bottleneck when bandwidth is constrained.</p>
     
     <h2>The Monumental Global Benchmark</h2>
     <p>To prove that ChromeLens can flawlessly handle enterprise-grade complexity, we wrote a fully automated execution harness to trace the <strong>Top 25 Global</strong> and <strong>Top 25 Indian</strong> web platforms.</p>
