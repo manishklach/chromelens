@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The ChromeLens 50-Site Benchmark</title>
+  <title>The ChromeLens Benchmark</title>
   <style>
     :root {
       --bg: #0b1120;
@@ -35,8 +35,6 @@
     .grade-c { background: #78350f; color: #fbbf24; }
     .grade-d { background: #7f1d1d; color: #f87171; }
     .grade-f { background: #450a0a; color: #ef4444; }
-    .error-row { opacity: 0.6; }
-    .error-text { color: #ef4444; font-size: 0.85rem; }
     footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.875rem; margin-top: 4rem; }
   </style>
 </head>
@@ -47,77 +45,58 @@
   </nav>
 
   <div class="container">
-    <h1>The ChromeLens 50-Site Benchmark</h1>
+    <h1>The ChromeLens Benchmark</h1>
     <p class="subtitle">Benchmarking the modern web using deterministic CDP Traces. <em>(Run Date: 2026-03-31)</em></p>
     
     <div class="prose">
-      <p>Standard tools like Google Lighthouse provide synthesized surface-level snapshots of web performance. To demonstrate the rigorous difference of <strong>ChromeLens</strong>, we unleashed the engine headlessly against the Top 25 Global and Top 25 Indian web properties.</p>
-      <p><strong>Methodology:</strong> The harness navigated to the landing page of each target, attached low-level Chrome DevTools Protocol tracing sockets, and captured raw Main Thread processing, JS Heap fluctuations, and Rendering signals. These metrics were aggregated into a composite Score (0-100).</p>
-      <p><em>Note: Several monolithic sites aggressively block headless automation tooling at the WAF level and are consequently marked as Failed.</em></p>
+      <p>Standard tools like Google Lighthouse provide synthesized surface-level snapshots of web performance. To demonstrate the rigorous difference of <strong>ChromeLens</strong>, we unleashed the engine headlessly against the Top Global and Indian web properties.</p>
+      <p><strong>Methodology:</strong> The harness navigated to the landing page of each target, attached low-level Chrome DevTools Protocol tracing sockets, and captured 15 seconds of raw Main Thread processing, JS Heap fluctuations, and Rendering signals. These metrics were aggregated into a composite Score (0-100).</p>
+      <p><em>Note: Sites that completely blocked headless tooling via aggressive WAFs have been excluded from the final rankings. Click any target URL to view its full interactive ChromeLens hardware trace.</em></p>
     </div>
 
-    <h2>Global Top 25 Hierarchy</h2>
+    <h2>Global Hierarchy</h2>
     <table>
 <thead><tr><th>Rank</th><th>Target URL</th><th>Score</th><th>Grade</th><th>TBT (ms)</th><th>LCP (ms)</th><th>Peak JS Heap (MB)</th></tr></thead>
 <tbody>
-<tr><td>#1</td><td><a href="https://youtube.com">https://youtube.com</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.5</td></tr>
-<tr><td>#2</td><td><a href="https://google.com">https://google.com</a></td><td><strong>96</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>3.2</td></tr>
-<tr><td>#3</td><td><a href="https://whatsapp.com">https://whatsapp.com</a></td><td><strong>93</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>4.7</td></tr>
-<tr><td>#4</td><td><a href="https://zoom.us">https://zoom.us</a></td><td><strong>88</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>30.4</td></tr>
-<tr><td>#5</td><td><a href="https://office.com">https://office.com</a></td><td><strong>83</strong></td><td><span class="badge grade-b">B</span></td><td>58</td><td>0</td><td>11.2</td></tr>
-<tr><td>#6</td><td><a href="https://bing.com">https://bing.com</a></td><td><strong>77</strong></td><td><span class="badge grade-b">B</span></td><td>220</td><td>0</td><td>6.8</td></tr>
-<tr><td>#7</td><td><a href="https://apple.com">https://apple.com</a></td><td><strong>65</strong></td><td><span class="badge grade-c">C</span></td><td>356</td><td>0</td><td>9.3</td></tr>
-<tr><td>#8</td><td><a href="https://wikipedia.org">https://wikipedia.org</a></td><td><strong>65</strong></td><td><span class="badge grade-c">C</span></td><td>583</td><td>0</td><td>1.3</td></tr>
-<tr><td>#9</td><td><a href="https://linkedin.com">https://linkedin.com</a></td><td><strong>56</strong></td><td><span class="badge grade-c">C</span></td><td>2055</td><td>0</td><td>10.1</td></tr>
-<tr><td>#10</td><td><a href="https://microsoft.com">https://microsoft.com</a></td><td><strong>55</strong></td><td><span class="badge grade-c">C</span></td><td>585</td><td>0</td><td>28.1</td></tr>
-<tr><td>#11</td><td><a href="https://live.com">https://live.com</a></td><td><strong>55</strong></td><td><span class="badge grade-c">C</span></td><td>2653</td><td>0</td><td>13.0</td></tr>
-<tr><td>#12</td><td><a href="https://facebook.com">https://facebook.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>1099</td><td>0</td><td>15.6</td></tr>
-<tr><td>#13</td><td><a href="https://instagram.com">https://instagram.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>1881</td><td>0</td><td>20.9</td></tr>
-<tr><td>#14</td><td><a href="https://naver.com">https://naver.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>3944</td><td>0</td><td>20.0</td></tr>
-<tr><td>#15</td><td><a href="https://tiktok.com">https://tiktok.com</a></td><td><strong>50</strong></td><td><span class="badge grade-d">D</span></td><td>4551</td><td>0</td><td>16.5</td></tr>
-<tr><td>#16</td><td><a href="https://bilibili.com">https://bilibili.com</a></td><td><strong>43</strong></td><td><span class="badge grade-d">D</span></td><td>2145</td><td>0</td><td>20.5</td></tr>
-<tr><td>#17</td><td><a href="https://netflix.com">https://netflix.com</a></td><td><strong>37</strong></td><td><span class="badge grade-d">D</span></td><td>4630</td><td>0</td><td>70.7</td></tr>
-<tr class="error-row"><td>18</td><td><a href="https://twitter.com">https://twitter.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>19</td><td><a href="https://yahoo.com">https://yahoo.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>20</td><td><a href="https://yandex.ru">https://yandex.ru</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>21</td><td><a href="https://amazon.com">https://amazon.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>22</td><td><a href="https://reddit.com">https://reddit.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>23</td><td><a href="https://twitch.tv">https://twitch.tv</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>24</td><td><a href="https://weather.com">https://weather.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>25</td><td><a href="https://quora.com">https://quora.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr><td>#1</td><td><a href="reports/youtube.com/" target="_blank">youtube.com</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.5</td></tr>
+<tr><td>#2</td><td><a href="reports/zoom.us/" target="_blank">zoom.us</a></td><td><strong>90</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>29.0</td></tr>
+<tr><td>#3</td><td><a href="reports/whatsapp.com/" target="_blank">whatsapp.com</a></td><td><strong>89</strong></td><td><span class="badge grade-b">B</span></td><td>92</td><td>0</td><td>4.6</td></tr>
+<tr><td>#4</td><td><a href="reports/office.com/" target="_blank">office.com</a></td><td><strong>85</strong></td><td><span class="badge grade-b">B</span></td><td>131</td><td>0</td><td>11.4</td></tr>
+<tr><td>#5</td><td><a href="reports/google.com/" target="_blank">google.com</a></td><td><strong>82</strong></td><td><span class="badge grade-b">B</span></td><td>253</td><td>0</td><td>3.3</td></tr>
+<tr><td>#6</td><td><a href="reports/bing.com/" target="_blank">bing.com</a></td><td><strong>79</strong></td><td><span class="badge grade-b">B</span></td><td>152</td><td>0</td><td>6.9</td></tr>
+<tr><td>#7</td><td><a href="reports/microsoft.com/" target="_blank">microsoft.com</a></td><td><strong>78</strong></td><td><span class="badge grade-b">B</span></td><td>152</td><td>0</td><td>23.7</td></tr>
+<tr><td>#8</td><td><a href="reports/wikipedia.org/" target="_blank">wikipedia.org</a></td><td><strong>76</strong></td><td><span class="badge grade-b">B</span></td><td>428</td><td>0</td><td>1.3</td></tr>
+<tr><td>#9</td><td><a href="reports/yandex.ru/" target="_blank">yandex.ru</a></td><td><strong>71</strong></td><td><span class="badge grade-c">C</span></td><td>0</td><td>0</td><td>61.6</td></tr>
+<tr><td>#10</td><td><a href="reports/apple.com/" target="_blank">apple.com</a></td><td><strong>58</strong></td><td><span class="badge grade-c">C</span></td><td>434</td><td>0</td><td>9.1</td></tr>
+<tr><td>#11</td><td><a href="reports/linkedin.com/" target="_blank">linkedin.com</a></td><td><strong>56</strong></td><td><span class="badge grade-c">C</span></td><td>739</td><td>0</td><td>9.4</td></tr>
+<tr><td>#12</td><td><a href="reports/facebook.com/" target="_blank">facebook.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>1313</td><td>0</td><td>15.3</td></tr>
+<tr><td>#13</td><td><a href="reports/instagram.com/" target="_blank">instagram.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>2612</td><td>0</td><td>22.6</td></tr>
+<tr><td>#14</td><td><a href="reports/naver.com/" target="_blank">naver.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>2638</td><td>0</td><td>19.4</td></tr>
+<tr><td>#15</td><td><a href="reports/live.com/" target="_blank">live.com</a></td><td><strong>52</strong></td><td><span class="badge grade-d">D</span></td><td>1079</td><td>0</td><td>13.4</td></tr>
+<tr><td>#16</td><td><a href="reports/tiktok.com/" target="_blank">tiktok.com</a></td><td><strong>52</strong></td><td><span class="badge grade-d">D</span></td><td>3460</td><td>0</td><td>16.9</td></tr>
+<tr><td>#17</td><td><a href="reports/bilibili.com/" target="_blank">bilibili.com</a></td><td><strong>40</strong></td><td><span class="badge grade-d">D</span></td><td>1663</td><td>0</td><td>20.3</td></tr>
+<tr><td>#18</td><td><a href="reports/netflix.com/" target="_blank">netflix.com</a></td><td><strong>37</strong></td><td><span class="badge grade-d">D</span></td><td>3556</td><td>0</td><td>64.8</td></tr>
 </tbody>
 </table>
 
 
-    <h2>India Top 25 Hierarchy</h2>
+    <h2>India Hierarchy</h2>
     <table>
 <thead><tr><th>Rank</th><th>Target URL</th><th>Score</th><th>Grade</th><th>TBT (ms)</th><th>LCP (ms)</th><th>Peak JS Heap (MB)</th></tr></thead>
 <tbody>
-<tr><td>#1</td><td><a href="https://jiocinema.com">https://jiocinema.com</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>1.1</td></tr>
-<tr><td>#2</td><td><a href="https://sbi.co.in">https://sbi.co.in</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#3</td><td><a href="https://moneycontrol.com">https://moneycontrol.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#4</td><td><a href="https://cricbuzz.com">https://cricbuzz.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#5</td><td><a href="https://naukri.com">https://naukri.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#6</td><td><a href="https://swiggy.com">https://swiggy.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#7</td><td><a href="https://ajio.com">https://ajio.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
-<tr><td>#8</td><td><a href="https://google.co.in">https://google.co.in</a></td><td><strong>96</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>3.2</td></tr>
-<tr><td>#9</td><td><a href="https://zerodha.com">https://zerodha.com</a></td><td><strong>90</strong></td><td><span class="badge grade-a">A</span></td><td>14</td><td>0</td><td>1.2</td></tr>
-<tr><td>#10</td><td><a href="https://hotstar.com">https://hotstar.com</a></td><td><strong>89</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>45.7</td></tr>
-<tr><td>#11</td><td><a href="https://indiatimes.com">https://indiatimes.com</a></td><td><strong>88</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>27.9</td></tr>
-<tr><td>#12</td><td><a href="https://hdfcbank.com">https://hdfcbank.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1570</td><td>0</td><td>18.5</td></tr>
-<tr><td>#13</td><td><a href="https://flipkart.com">https://flipkart.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1935</td><td>0</td><td>38.1</td></tr>
-<tr><td>#14</td><td><a href="https://paytm.com">https://paytm.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>5702</td><td>0</td><td>24.1</td></tr>
-<tr class="error-row"><td>15</td><td><a href="https://amazon.in">https://amazon.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>16</td><td><a href="https://myntra.com">https://myntra.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>17</td><td><a href="https://makemytrip.com">https://makemytrip.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>18</td><td><a href="https://timesofindia.indiatimes.com">https://timesofindia.indiatimes.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>19</td><td><a href="https://irctc.co.in">https://irctc.co.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>20</td><td><a href="https://ola.in">https://ola.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>21</td><td><a href="https://zomato.com">https://zomato.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>22</td><td><a href="https://bookmyshow.com">https://bookmyshow.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>23</td><td><a href="https://indiamart.com">https://indiamart.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>24</td><td><a href="https://policybazaar.com">https://policybazaar.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
-<tr class="error-row"><td>25</td><td><a href="https://redbus.in">https://redbus.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr><td>#1</td><td><a href="reports/sbi.co.in/" target="_blank">sbi.co.in</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#2</td><td><a href="reports/moneycontrol.com/" target="_blank">moneycontrol.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#3</td><td><a href="reports/naukri.com/" target="_blank">naukri.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#4</td><td><a href="reports/swiggy.com/" target="_blank">swiggy.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#5</td><td><a href="reports/ajio.com/" target="_blank">ajio.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#6</td><td><a href="reports/jiocinema.com/" target="_blank">jiocinema.com</a></td><td><strong>96</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>1.1</td></tr>
+<tr><td>#7</td><td><a href="reports/zerodha.com/" target="_blank">zerodha.com</a></td><td><strong>93</strong></td><td><span class="badge grade-a">A</span></td><td>24</td><td>0</td><td>1.2</td></tr>
+<tr><td>#8</td><td><a href="reports/google.co.in/" target="_blank">google.co.in</a></td><td><strong>92</strong></td><td><span class="badge grade-a">A</span></td><td>44</td><td>0</td><td>3.2</td></tr>
+<tr><td>#9</td><td><a href="reports/cricbuzz.com/" target="_blank">cricbuzz.com</a></td><td><strong>91</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#10</td><td><a href="reports/hotstar.com/" target="_blank">hotstar.com</a></td><td><strong>89</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>56.9</td></tr>
+<tr><td>#11</td><td><a href="reports/bookmyshow.com/" target="_blank">bookmyshow.com</a></td><td><strong>88</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>43.3</td></tr>
+<tr><td>#12</td><td><a href="reports/flipkart.com/" target="_blank">flipkart.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1286</td><td>0</td><td>43.0</td></tr>
+<tr><td>#13</td><td><a href="reports/hdfcbank.com/" target="_blank">hdfcbank.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1908</td><td>0</td><td>19.1</td></tr>
 </tbody>
 </table>
 

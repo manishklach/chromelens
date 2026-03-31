@@ -5,6 +5,7 @@ import os
 import json
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 from rich.console import Console
 from datetime import datetime
 
@@ -14,6 +15,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from chromelens.profiler.page_profiler import PageProfiler
 from chromelens.analysis.trace_analyzer import TraceAnalyzer
 from chromelens.analysis.health_scorer import HealthScorer
+from chromelens.report.html_report import generate_html_report
 
 console = Console()
 
@@ -38,26 +40,30 @@ def profile_target_list(target_list, category, analyzer, scorer):
     
     for i, url in enumerate(target_list):
         console.print(f"[{category}] Benchmarking {i+1}/{len(target_list)}: {url}")
+        domain = urlparse(url).netloc.replace("www.", "")
         
         try:
-            with PageProfiler(headless=True, filmstrip=False) as profiler:
+            start_time = time.perf_counter()
+            with PageProfiler(headless=True, filmstrip=True) as profiler:
                 profile = profiler.profile_page(url, site_origin=url)
             
             if profile.error and not profile.trace_events:
-                console.print(f"[red]Failed to trace {url}: {profile.error}[/red]")
-                results.append({
-                    "url": url,
-                    "score": 0,
-                    "grade": "F",
-                    "tbt_ms": 0.0,
-                    "lcp_ms": 0.0,
-                    "js_heap_mb": 0.0,
-                    "error": profile.error
-                })
+                console.print(f"[red]Failed/Blocked tracing {url}: {profile.error}. Skipping.[/red]")
                 continue
                 
             insight = analyzer.analyze(profile.trace_events)
             score_data = scorer.score_page(profile, insight)
+            
+            crawl_duration = time.perf_counter() - start_time
+            site_report = scorer.score_site(url, [score_data], [profile], crawl_duration)
+            
+            # Generate HTML report
+            docs_dir = Path(__file__).parent.parent / "docs"
+            report_dir = docs_dir / "reports" / domain
+            report_dir.mkdir(parents=True, exist_ok=True)
+            report_path = report_dir / "index.html"
+            
+            generate_html_report(site_report, [profile], [insight], report_path)
             
             # extract specific telemetry metrics
             js_heap_bytes = max([pt.value for pt in insight.memory_timeline]) if insight.memory_timeline else profile.system_metrics.renderer_memory_bytes
@@ -65,27 +71,20 @@ def profile_target_list(target_list, category, analyzer, scorer):
             
             res = {
                 "url": url,
+                "domain": domain,
                 "score": score_data.score,
                 "grade": score_data.grade,
                 "tbt_ms": insight.total_blocking_time_ms,
                 "lcp_ms": profile.vitals.lcp_ms,
                 "js_heap_mb": js_heap_mb,
-                "error": None
+                "report_url": f"reports/{domain}/"
             }
             console.print(f"[green]Success: {score_data.score}/100 - TBT: {insight.total_blocking_time_ms:.0f}ms - JS Heap: {js_heap_mb:.1f}MB[/green]")
             results.append(res)
             
         except Exception as e:
-            console.print(f"[red]Exception profiling {url}: {e}[/red]")
-            results.append({
-                "url": url,
-                "score": 0,
-                "grade": "F",
-                "tbt_ms": 0.0,
-                "lcp_ms": 0.0,
-                "js_heap_mb": 0.0,
-                "error": str(e)
-            })
+            console.print(f"[red]Exception profiling {url} (skipping): {e}[/red]")
+            continue
             
     return sorted(results, key=lambda x: (x["score"], -x["tbt_ms"]), reverse=True)
 
@@ -93,11 +92,8 @@ def generate_blog_html(global_results, india_results):
     def build_table(rows):
         html = "<table>\n<thead><tr><th>Rank</th><th>Target URL</th><th>Score</th><th>Grade</th><th>TBT (ms)</th><th>LCP (ms)</th><th>Peak JS Heap (MB)</th></tr></thead>\n<tbody>\n"
         for i, r in enumerate(rows):
-            if r["error"]:
-                html += f'<tr class="error-row"><td>{i+1}</td><td><a href="{r["url"]}">{r["url"]}</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>\n'
-            else:
-                grade_class = f'grade-{r["grade"].lower()}'
-                html += f'<tr><td>#{i+1}</td><td><a href="{r["url"]}">{r["url"]}</a></td><td><strong>{r["score"]}</strong></td><td><span class="badge {grade_class}">{r["grade"]}</span></td><td>{r["tbt_ms"]:.0f}</td><td>{r["lcp_ms"]:.0f}</td><td>{r["js_heap_mb"]:.1f}</td></tr>\n'
+            grade_class = f'grade-{r["grade"].lower()}'
+            html += f'<tr><td>#{i+1}</td><td><a href="{r.get("report_url", "#")}" target="_blank">{r["domain"]}</a></td><td><strong>{r["score"]}</strong></td><td><span class="badge {grade_class}">{r["grade"]}</span></td><td>{r["tbt_ms"]:.0f}</td><td>{r["lcp_ms"]:.0f}</td><td>{r["js_heap_mb"]:.1f}</td></tr>\n'
         html += "</tbody>\n</table>\n"
         return html
 
@@ -106,7 +102,7 @@ def generate_blog_html(global_results, india_results):
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The ChromeLens 50-Site Benchmark</title>
+  <title>The ChromeLens Benchmark</title>
   <style>
     :root {{
       --bg: #0b1120;
@@ -138,8 +134,6 @@ def generate_blog_html(global_results, india_results):
     .grade-c {{ background: #78350f; color: #fbbf24; }}
     .grade-d {{ background: #7f1d1d; color: #f87171; }}
     .grade-f {{ background: #450a0a; color: #ef4444; }}
-    .error-row {{ opacity: 0.6; }}
-    .error-text {{ color: #ef4444; font-size: 0.85rem; }}
     footer {{ border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.875rem; margin-top: 4rem; }}
   </style>
 </head>
@@ -150,19 +144,19 @@ def generate_blog_html(global_results, india_results):
   </nav>
 
   <div class="container">
-    <h1>The ChromeLens 50-Site Benchmark</h1>
+    <h1>The ChromeLens Benchmark</h1>
     <p class="subtitle">Benchmarking the modern web using deterministic CDP Traces. <em>(Run Date: {datetime.utcnow().strftime('%Y-%m-%d')})</em></p>
     
     <div class="prose">
-      <p>Standard tools like Google Lighthouse provide synthesized surface-level snapshots of web performance. To demonstrate the rigorous difference of <strong>ChromeLens</strong>, we unleashed the engine headlessly against the Top 25 Global and Top 25 Indian web properties.</p>
-      <p><strong>Methodology:</strong> The harness navigated to the landing page of each target, attached low-level Chrome DevTools Protocol tracing sockets, and captured raw Main Thread processing, JS Heap fluctuations, and Rendering signals. These metrics were aggregated into a composite Score (0-100).</p>
-      <p><em>Note: Several monolithic sites aggressively block headless automation tooling at the WAF level and are consequently marked as Failed.</em></p>
+      <p>Standard tools like Google Lighthouse provide synthesized surface-level snapshots of web performance. To demonstrate the rigorous difference of <strong>ChromeLens</strong>, we unleashed the engine headlessly against the Top Global and Indian web properties.</p>
+      <p><strong>Methodology:</strong> The harness navigated to the landing page of each target, attached low-level Chrome DevTools Protocol tracing sockets, and captured 15 seconds of raw Main Thread processing, JS Heap fluctuations, and Rendering signals. These metrics were aggregated into a composite Score (0-100).</p>
+      <p><em>Note: Sites that completely blocked headless tooling via aggressive WAFs have been excluded from the final rankings. Click any target URL to view its full interactive ChromeLens hardware trace.</em></p>
     </div>
 
-    <h2>Global Top 25 Hierarchy</h2>
+    <h2>Global Hierarchy</h2>
     {build_table(global_results)}
 
-    <h2>India Top 25 Hierarchy</h2>
+    <h2>India Hierarchy</h2>
     {build_table(india_results)}
     
     <h2>Analysis: The Hydration Penalty</h2>
@@ -185,15 +179,15 @@ def generate_blog_html(global_results, india_results):
         f.write(template)
 
 def main():
-    console.print("[bold blue]Starting ChromeLens 50-Site Benchmark Harness...[/bold blue]")
+    console.print("[bold blue]Starting ChromeLens Benchmark Harness...[/bold blue]")
     
     analyzer = TraceAnalyzer()
     scorer = HealthScorer()
     
-    console.print("\n[bold cyan]--- Profiling Top 25 Global ---[/bold cyan]")
+    console.print("\n[bold cyan]--- Profiling Global ---[/bold cyan]")
     global_res = profile_target_list(GLOBAL_TOP, "GLOBAL", analyzer, scorer)
     
-    console.print("\n[bold cyan]--- Profiling Top 25 India ---[/bold cyan]")
+    console.print("\n[bold cyan]--- Profiling India ---[/bold cyan]")
     india_res = profile_target_list(INDIA_TOP, "INDIA", analyzer, scorer)
         
     out_dir = Path("reports")
