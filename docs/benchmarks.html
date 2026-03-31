@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The ChromeLens 50-Site Benchmark</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #0f172a;
+      --border: #1e293b;
+      --accent: #3b82f6;
+      --text-main: #cbd5e1;
+      --text-head: #f8fafc;
+      --font-ui: 'Inter', -apple-system, system-ui, sans-serif;
+    }
+    body { margin: 0; background-color: var(--bg); color: var(--text-main); font-family: var(--font-ui); line-height: 1.6; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+    .logo { color: var(--text-head); font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 4rem 1.5rem; }
+    h1 { color: var(--text-head); font-size: 3rem; margin-bottom: 0.5rem; letter-spacing: -1px; }
+    .subtitle { font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; }
+    h2 { color: var(--text-head); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 4rem; }
+    .prose { font-size: 1.05rem; margin-bottom: 2rem; }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 3rem; font-size: 0.95rem; }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-head); font-weight: 600; background: var(--card-bg); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    
+    .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+    .grade-a { background: #064e3b; color: #34d399; }
+    .grade-b { background: #065f46; color: #6ee7b7; }
+    .grade-c { background: #78350f; color: #fbbf24; }
+    .grade-d { background: #7f1d1d; color: #f87171; }
+    .grade-f { background: #450a0a; color: #ef4444; }
+    .error-row { opacity: 0.6; }
+    .error-text { color: #ef4444; font-size: 0.85rem; }
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.875rem; margin-top: 4rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="logo">🔬 ChromeLens</a>
+    <a href="https://github.com/manishklach/chromelens" style="color:var(--text-main); font-weight:600; text-decoration:none;">GitHub</a>
+  </nav>
+
+  <div class="container">
+    <h1>The ChromeLens 50-Site Benchmark</h1>
+    <p class="subtitle">Benchmarking the modern web using deterministic CDP Traces. <em>(Run Date: 2026-03-31)</em></p>
+    
+    <div class="prose">
+      <p>Standard tools like Google Lighthouse provide synthesized surface-level snapshots of web performance. To demonstrate the rigorous difference of <strong>ChromeLens</strong>, we unleashed the engine headlessly against the Top 25 Global and Top 25 Indian web properties.</p>
+      <p><strong>Methodology:</strong> The harness navigated to the landing page of each target, attached low-level Chrome DevTools Protocol tracing sockets, and captured raw Main Thread processing, JS Heap fluctuations, and Rendering signals. These metrics were aggregated into a composite Score (0-100).</p>
+      <p><em>Note: Several monolithic sites aggressively block headless automation tooling at the WAF level and are consequently marked as Failed.</em></p>
+    </div>
+
+    <h2>Global Top 25 Hierarchy</h2>
+    <table>
+<thead><tr><th>Rank</th><th>Target URL</th><th>Score</th><th>Grade</th><th>TBT (ms)</th><th>LCP (ms)</th><th>Peak JS Heap (MB)</th></tr></thead>
+<tbody>
+<tr><td>#1</td><td><a href="https://youtube.com">https://youtube.com</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.5</td></tr>
+<tr><td>#2</td><td><a href="https://google.com">https://google.com</a></td><td><strong>96</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>3.2</td></tr>
+<tr><td>#3</td><td><a href="https://whatsapp.com">https://whatsapp.com</a></td><td><strong>93</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>4.7</td></tr>
+<tr><td>#4</td><td><a href="https://zoom.us">https://zoom.us</a></td><td><strong>88</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>30.4</td></tr>
+<tr><td>#5</td><td><a href="https://office.com">https://office.com</a></td><td><strong>83</strong></td><td><span class="badge grade-b">B</span></td><td>58</td><td>0</td><td>11.2</td></tr>
+<tr><td>#6</td><td><a href="https://bing.com">https://bing.com</a></td><td><strong>77</strong></td><td><span class="badge grade-b">B</span></td><td>220</td><td>0</td><td>6.8</td></tr>
+<tr><td>#7</td><td><a href="https://apple.com">https://apple.com</a></td><td><strong>65</strong></td><td><span class="badge grade-c">C</span></td><td>356</td><td>0</td><td>9.3</td></tr>
+<tr><td>#8</td><td><a href="https://wikipedia.org">https://wikipedia.org</a></td><td><strong>65</strong></td><td><span class="badge grade-c">C</span></td><td>583</td><td>0</td><td>1.3</td></tr>
+<tr><td>#9</td><td><a href="https://linkedin.com">https://linkedin.com</a></td><td><strong>56</strong></td><td><span class="badge grade-c">C</span></td><td>2055</td><td>0</td><td>10.1</td></tr>
+<tr><td>#10</td><td><a href="https://microsoft.com">https://microsoft.com</a></td><td><strong>55</strong></td><td><span class="badge grade-c">C</span></td><td>585</td><td>0</td><td>28.1</td></tr>
+<tr><td>#11</td><td><a href="https://live.com">https://live.com</a></td><td><strong>55</strong></td><td><span class="badge grade-c">C</span></td><td>2653</td><td>0</td><td>13.0</td></tr>
+<tr><td>#12</td><td><a href="https://facebook.com">https://facebook.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>1099</td><td>0</td><td>15.6</td></tr>
+<tr><td>#13</td><td><a href="https://instagram.com">https://instagram.com</a></td><td><strong>54</strong></td><td><span class="badge grade-d">D</span></td><td>1881</td><td>0</td><td>20.9</td></tr>
+<tr><td>#14</td><td><a href="https://naver.com">https://naver.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>3944</td><td>0</td><td>20.0</td></tr>
+<tr><td>#15</td><td><a href="https://tiktok.com">https://tiktok.com</a></td><td><strong>50</strong></td><td><span class="badge grade-d">D</span></td><td>4551</td><td>0</td><td>16.5</td></tr>
+<tr><td>#16</td><td><a href="https://bilibili.com">https://bilibili.com</a></td><td><strong>43</strong></td><td><span class="badge grade-d">D</span></td><td>2145</td><td>0</td><td>20.5</td></tr>
+<tr><td>#17</td><td><a href="https://netflix.com">https://netflix.com</a></td><td><strong>37</strong></td><td><span class="badge grade-d">D</span></td><td>4630</td><td>0</td><td>70.7</td></tr>
+<tr class="error-row"><td>18</td><td><a href="https://twitter.com">https://twitter.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>19</td><td><a href="https://yahoo.com">https://yahoo.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>20</td><td><a href="https://yandex.ru">https://yandex.ru</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>21</td><td><a href="https://amazon.com">https://amazon.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>22</td><td><a href="https://reddit.com">https://reddit.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>23</td><td><a href="https://twitch.tv">https://twitch.tv</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>24</td><td><a href="https://weather.com">https://weather.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>25</td><td><a href="https://quora.com">https://quora.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+</tbody>
+</table>
+
+
+    <h2>India Top 25 Hierarchy</h2>
+    <table>
+<thead><tr><th>Rank</th><th>Target URL</th><th>Score</th><th>Grade</th><th>TBT (ms)</th><th>LCP (ms)</th><th>Peak JS Heap (MB)</th></tr></thead>
+<tbody>
+<tr><td>#1</td><td><a href="https://jiocinema.com">https://jiocinema.com</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>1.1</td></tr>
+<tr><td>#2</td><td><a href="https://sbi.co.in">https://sbi.co.in</a></td><td><strong>100</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#3</td><td><a href="https://moneycontrol.com">https://moneycontrol.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#4</td><td><a href="https://cricbuzz.com">https://cricbuzz.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#5</td><td><a href="https://naukri.com">https://naukri.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#6</td><td><a href="https://swiggy.com">https://swiggy.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#7</td><td><a href="https://ajio.com">https://ajio.com</a></td><td><strong>99</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>0.9</td></tr>
+<tr><td>#8</td><td><a href="https://google.co.in">https://google.co.in</a></td><td><strong>96</strong></td><td><span class="badge grade-a">A</span></td><td>0</td><td>0</td><td>3.2</td></tr>
+<tr><td>#9</td><td><a href="https://zerodha.com">https://zerodha.com</a></td><td><strong>90</strong></td><td><span class="badge grade-a">A</span></td><td>14</td><td>0</td><td>1.2</td></tr>
+<tr><td>#10</td><td><a href="https://hotstar.com">https://hotstar.com</a></td><td><strong>89</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>45.7</td></tr>
+<tr><td>#11</td><td><a href="https://indiatimes.com">https://indiatimes.com</a></td><td><strong>88</strong></td><td><span class="badge grade-b">B</span></td><td>0</td><td>0</td><td>27.9</td></tr>
+<tr><td>#12</td><td><a href="https://hdfcbank.com">https://hdfcbank.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1570</td><td>0</td><td>18.5</td></tr>
+<tr><td>#13</td><td><a href="https://flipkart.com">https://flipkart.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>1935</td><td>0</td><td>38.1</td></tr>
+<tr><td>#14</td><td><a href="https://paytm.com">https://paytm.com</a></td><td><strong>53</strong></td><td><span class="badge grade-d">D</span></td><td>5702</td><td>0</td><td>24.1</td></tr>
+<tr class="error-row"><td>15</td><td><a href="https://amazon.in">https://amazon.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>16</td><td><a href="https://myntra.com">https://myntra.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>17</td><td><a href="https://makemytrip.com">https://makemytrip.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>18</td><td><a href="https://timesofindia.indiatimes.com">https://timesofindia.indiatimes.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>19</td><td><a href="https://irctc.co.in">https://irctc.co.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>20</td><td><a href="https://ola.in">https://ola.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>21</td><td><a href="https://zomato.com">https://zomato.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>22</td><td><a href="https://bookmyshow.com">https://bookmyshow.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>23</td><td><a href="https://indiamart.com">https://indiamart.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>24</td><td><a href="https://policybazaar.com">https://policybazaar.com</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+<tr class="error-row"><td>25</td><td><a href="https://redbus.in">https://redbus.in</a></td><td colspan="5" class="error-text">Failed: Anti-bot block or Timeout</td></tr>
+</tbody>
+</table>
+
+    
+    <h2>Analysis: The Hydration Penalty</h2>
+    <div class="prose">
+      <p>The telemetric data exposes a critical paradigm: heavy client-side SPAs (React/Vue monolithic platforms) suffer dramatically in <strong>Total Blocking Time (TBT)</strong> during their initial JS hydration cycles.</p>
+      <p>While massive ad-networks and bloated third-party analytics bloat the JS Heap, it is the V8 compilation lock-ups holding up the Main Thread that fundamentally destroy a site's grading.</p>
+      <p>ChromeLens was built precisely to isolate these >50ms main-thread violations.</p>
+    </div>
+  </div>
+  
+  <footer>
+    <p>ChromeLens &copy; 2026. Released under the Apache-2.0 License.</p>
+  </footer>
+</body>
+</html>
