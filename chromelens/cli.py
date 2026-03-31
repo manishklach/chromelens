@@ -37,6 +37,8 @@ def main(verbose: bool) -> None:
 @click.option("--headless/--headed", default=True, help="Run browser in headless mode.")
 @click.option("--screenshots/--no-screenshots", default=True, help="Capture page screenshots.")
 @click.option("--filmstrip/--no-filmstrip", default=True, help="Capture rendering filmstrip in report.")
+@click.option("--network", type=click.Choice(["lte", "fast-3g", "slow-3g", "mcdonalds", "starbucks", "airport", "offline"]), default=None, help="Throttle network connection.")
+@click.option("--device", default=None, help="Emulate a specific mobile device (e.g. 'Pixel 5', 'iPhone 13').")
 def crawl(
     url: str,
     output: str,
@@ -45,6 +47,8 @@ def crawl(
     headless: bool,
     screenshots: bool,
     filmstrip: bool,
+    network: str | None,
+    device: str | None,
 ) -> None:
     """Crawl a website and generate a performance report.
 
@@ -76,7 +80,13 @@ def crawl(
     analyzer = TraceAnalyzer()
     trace_insights = []
 
-    with PageProfiler(headless=headless, screenshot_dir=screenshot_dir, filmstrip=filmstrip) as profiler:
+    with PageProfiler(
+        headless=headless, 
+        screenshot_dir=screenshot_dir, 
+        filmstrip=filmstrip,
+        device_name=device,
+        network_profile=network,
+    ) as profiler:
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),

@@ -44,6 +44,16 @@ TRACE_CATEGORIES = [
 
 FILMSTRIP_CATEGORY = "disabled-by-default-devtools.screenshot"
 
+NETWORK_PROFILES = {
+    "lte": {"offline": False, "latency": 20, "downloadThroughput": int(12 * 1024 * 1024 / 8), "uploadThroughput": int(5 * 1024 * 1024 / 8)},
+    "fast-3g": {"offline": False, "latency": 40, "downloadThroughput": int(1.4 * 1024 * 1024 / 8), "uploadThroughput": int(0.75 * 1024 * 1024 / 8)},
+    "slow-3g": {"offline": False, "latency": 400, "downloadThroughput": int(0.4 * 1024 * 1024 / 8), "uploadThroughput": int(0.4 * 1024 * 1024 / 8)},
+    "mcdonalds": {"offline": False, "latency": 50, "downloadThroughput": int(2 * 1024 * 1024 / 8), "uploadThroughput": int(1 * 1024 * 1024 / 8)},
+    "starbucks": {"offline": False, "latency": 30, "downloadThroughput": int(5 * 1024 * 1024 / 8), "uploadThroughput": int(2 * 1024 * 1024 / 8)},
+    "airport": {"offline": False, "latency": 150, "downloadThroughput": int(1 * 1024 * 1024 / 8), "uploadThroughput": int(0.5 * 1024 * 1024 / 8)},
+    "offline": {"offline": True, "latency": 0, "downloadThroughput": 0, "uploadThroughput": 0},
+}
+
 
 class PageProfiler:
     """Captures full performance profiles for individual pages via Playwright + CDP."""
@@ -53,10 +63,14 @@ class PageProfiler:
         headless: bool = True,
         screenshot_dir: Path | None = None,
         filmstrip: bool = True,
+        device_name: str | None = None,
+        network_profile: str | None = None,
     ) -> None:
         self.headless = headless
         self.screenshot_dir = screenshot_dir
         self.filmstrip = filmstrip
+        self.device_name = device_name
+        self.network_profile = network_profile
         self._pw_context: Any = None
         self._browser: Browser | None = None
 
@@ -78,10 +92,19 @@ class PageProfiler:
         start_time = time.perf_counter()
 
         try:
-            context = self._browser.new_context(
-                user_agent="ChromeLens/0.1 (performance-audit)",
-                viewport={"width": 1440, "height": 900},
-            )
+            context_opts = {}
+            if self.device_name:
+                device = self._pw_context.devices.get(self.device_name)
+                if device:
+                    context_opts.update(device)
+                else:
+                    LOGGER.warning("Device '%s' not found in Playwright.", self.device_name)
+            
+            if not context_opts:
+                context_opts["viewport"] = {"width": 1440, "height": 900}
+                context_opts["user_agent"] = "ChromeLens/0.1 (performance-audit)"
+
+            context = self._browser.new_context(**context_opts)
             page = context.new_page()
 
             # Capture network requests
@@ -97,6 +120,11 @@ class PageProfiler:
             # Create CDP session
             cdp = context.new_cdp_session(page)
             cdp.send("Performance.enable")
+
+            # Setup Network Emulation
+            if self.network_profile and self.network_profile in NETWORK_PROFILES:
+                cdp.send("Network.enable")
+                cdp.send("Network.emulateNetworkConditions", NETWORK_PROFILES[self.network_profile])
 
             # Start Chrome tracing
             trace_events: list[dict[str, Any]] = []
@@ -193,10 +221,19 @@ class PageProfiler:
         start_time = time.perf_counter()
 
         try:
-            context = self._browser.new_context(
-                user_agent="ChromeLens/0.1 (performance-audit)",
-                viewport={"width": 1440, "height": 900},
-            )
+            context_opts = {}
+            if self.device_name:
+                device = self._pw_context.devices.get(self.device_name)
+                if device:
+                    context_opts.update(device)
+                else:
+                    LOGGER.warning("Device '%s' not found in Playwright.", self.device_name)
+            
+            if not context_opts:
+                context_opts["viewport"] = {"width": 1440, "height": 900}
+                context_opts["user_agent"] = "ChromeLens/0.1 (performance-audit)"
+
+            context = self._browser.new_context(**context_opts)
             page = context.new_page()
 
             requests_log: list[NetworkRequest] = []
@@ -209,6 +246,11 @@ class PageProfiler:
 
             cdp = context.new_cdp_session(page)
             cdp.send("Performance.enable")
+
+            # Setup Network Emulation
+            if self.network_profile and self.network_profile in NETWORK_PROFILES:
+                cdp.send("Network.enable")
+                cdp.send("Network.emulateNetworkConditions", NETWORK_PROFILES[self.network_profile])
 
             trace_events: list[dict[str, Any]] = []
             cdp.on("Tracing.dataCollected", lambda params: trace_events.extend(params.get("value", [])))

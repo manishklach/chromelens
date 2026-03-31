@@ -92,6 +92,8 @@ ChromeLens requires Python 3.10+.
 - `--output`, `-o`: Dest for the HTML drop (default: `reports/chromelens`).
 - `--max-pages`: Bounding limit for discovered pages (default: `20`).
 - `--max-depth`: Max recursion depth (default: `3`).
+- `--network`: Throttle network constraints (`lte`, `fast-3g`, `slow-3g`, `mcdonalds`, `starbucks`, `airport`, `offline`).
+- `--device`: Emulate a specific mobile Playwright device (e.g. `"Pixel 5"`, `"iPhone 13"`).
 - `--headless`/`--headed`: Toggle Chrome visibility.
 - `--screenshots`: Toggle filmstrip / snapshot generation (default: `True`).
 
