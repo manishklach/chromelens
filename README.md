@@ -45,15 +45,18 @@ By implementing `interaction_fn` inside `profile_flow`, the engine captures the 
 
 ChromeLens allows you to simulate real-world conditions by throttling network speeds and emulating specific hardware devices. This is critical for understanding how your application performs on lower-end devices or unstable connections.
 
-### Demo: Wikipedia on Different Networks
-We profiled a Wikipedia article across various network profiles to see the impact on load times and TBT (Total Blocking Time).
+### Demo: Flipkart on Different Networks
+We profiled a heavy e-commerce platform like **Flipkart** across various network profiles to see the impact on load times and TBT (Total Blocking Time). 
 
 | Network Profile | Load Event (ms) | Total Blocking Time (ms) | Profile Duration (s) |
 | :--- | :---: | :---: | :---: |
-| **Native (Unthrottled)** | 628ms | 539ms | 3.78s |
-| **LTE (12 Mbps)** | 605ms | 378ms | 3.63s |
-| **Starbucks (5 Mbps)** | 1060ms | 356ms | 3.98s |
-| **Slow-3G (0.4 Mbps)** | 9000ms | 390ms | 13.16s |
+| **Native (Unthrottled)** | 2208ms | 2949ms | 8.18s |
+| **LTE (12 Mbps)** | 2113ms | 2650ms | 7.37s |
+| **Starbucks (5 Mbps)** | 3999ms | 3598ms | 10.95s |
+| **Slow-3G (0.4 Mbps)** | *Timed Out* | *Timed Out* | 30s+ |
+
+> [!NOTE]
+> Heavy sites like Flipkart can take significantly longer to load on throttled connections. ChromeLens captured the increasing "Hydration Penalty" as total blocking time climbed to 3.6s on a simulated Starbucks connection. 
 
 ### Example Commands:
 ```bash
