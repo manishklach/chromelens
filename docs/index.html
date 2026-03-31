@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChromeLens - Systems-Grade Performance Telemetry</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #0f172a;
+      --border: #1e293b;
+      --accent: #3b82f6;
+      --text-main: #cbd5e1;
+      --text-head: #f8fafc;
+      --font-ui: 'Inter', -apple-system, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      line-height: 1.6;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      color: var(--text-head);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-head);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .button:hover {
+      background: var(--border);
+    }
+    .button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .button.primary:hover {
+      background: #2563eb;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+    
+    .hero {
+      text-align: center;
+      padding: 6rem 0 4rem;
+    }
+    .hero h1 {
+      color: var(--text-head);
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin: 0 0 1rem;
+      line-height: 1.2;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      color: var(--text-main);
+    }
+    .terminal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      text-align: left;
+      margin: 3rem auto 0;
+      width: fit-content;
+      color: #38bdf8;
+    }
+    
+    .problem-block {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 2rem;
+      border-radius: 4px;
+      margin-bottom: 4rem;
+    }
+    .problem-block p {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text-head);
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      border-radius: 4px;
+    }
+    .card h3 {
+      color: var(--text-head);
+      margin-top: 0;
+    }
+    .card p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+    
+    .section-head {
+      color: var(--text-head);
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    
+    .screenshot {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-top: 2rem;
+      display: block;
+    }
+    
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.875rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">🔬 ChromeLens</div>
+    <div style="display: flex; gap: 1rem;">
+      <a href="https://github.com/manishklach/chromelens" class="button">GitHub</a>
+      <a href="#install" class="button primary">pip install chromelens</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <h1>The fleet-wide trace aggregator.</h1>
+      <p>Systems-grade performance telemetry for modern frontend infrastructure. Scale your bottleneck mappings from one to hundreds of routes.</p>
+      
+      <div class="terminal">
+        $ chromelens crawl https://example.com --max-pages 50
+      </div>
+    </div>
+
+    <div class="problem-block">
+      <p><strong>Lighthouse is a snapshot. It tells you a single page is slow.</strong><br/><br/>ChromeLens is an MRI. It tells you exactly which V8 compilation blocked the main thread on 50 different template routes, mapping rendering bottlenecks across your entire fleet.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Automated Fleet Discovery</h3>
+        <p>Crawls and profiles entire site topologies concurrently via Playwright link extraction and sitemap structures. Discards noise and obeys robots.txt.</p>
+      </div>
+      <div class="card">
+        <h3>Deterministic CDP Tracing</h3>
+        <p>Captures low-level Chrome metrics directly from the DevTools Protocol—exposing Long Tasks >50ms, GC pauses, Paint counts, and layout thrashing.</p>
+      </div>
+      <div class="card">
+        <h3>Interaction Flow Telemetry</h3>
+        <p>Bypass static loads. Programmatically script user journeys (clicks, SPA navigations) while continuously streaming hardware CPU and JS Heap utilization.</p>
+      </div>
+    </div>
+
+    <h2 class="section-head">Deep Dive: Interaction Flow Profiling</h2>
+    <p>ChromeLens includes an advanced mode to emulate full user journeys (like filling carts or searching complex SPAs) to visualize exactly when and why your Main Thread locks up.</p>
+    <img src="assets/flipkart_flow.png" alt="Hardware Timeline on Flipkart Demo" class="screenshot" />
+
+    <h2 class="section-head" style="margin-top:4rem;" id="install">Systems Architecture</h2>
+    <p>ChromeLens is engineered across 4 distinct processing subsystems, piping Playwright Chromium data natively into JSON artifact reports and interactive dashboards:</p>
+    <ul style="padding-left:1.5rem;">
+      <li><strong>Crawler & Discovery Subsystem:</strong> Traverses topologies and normalizes internal HTTP links.</li>
+      <li><strong>CDP Telemetry Engine:</strong> Bootstraps Playwright Contexts and captures the raw <code>Tracing.dataCollected</code> multi-megabyte streams.</li>
+      <li><strong>Trace Aggregation Layer:</strong> Maps Long Tasks back to rendering timelines and detects JS memory growth ticks.</li>
+      <li><strong>Reporting & Export Pipeline:</strong> Outputs interactive Jinja2/Chart.js trace-boards and raw machine-readable dictionaries.</li>
+    </ul>
+
+  </div>
+
+  <footer>
+    <p>ChromeLens &copy; 2026. Released under the Apache-2.0 License.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,110 +1,112 @@
 # 🔬 ChromeLens
 
-**Full-site performance X-ray powered by Chrome DevTools Protocol traces.**
+**Fleet-wide deterministic CDP telemetry for modern web architectures.**
 
-ChromeLens is a Python CLI tool that crawls an entire website, captures Chrome DevTools Protocol (CDP) traces for every page, extracts deep rendering-pipeline bottleneck signals, and generates a visual interactive dashboard.
+[![PyPI version](https://badge.fury.io/py/chromelens.svg)](https://badge.fury.io/py/chromelens)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Unlike standard tools (like Lighthouse) that test single URLs and provide surface-level Web Vitals, ChromeLens profiles **every reachable page** on your site, extracting sub-metric signals like V8 JavaScript compile times, layout thrashing events, and granular third-party script impact.
+ChromeLens is a systems-grade performance analysis engine. It crawls your entire web architecture, attaches Chrome DevTools Protocol (CDP) sockets to every route, and extracts low-level rendering pipeline traces to expose exactly what is blocking your main thread.
+
+### The Telemetry Gap
+Lighthouse is a snapshot. It tells you a single page is slow. 
+**ChromeLens is an MRI. It maps rendering bottlenecks across your entire fleet.**
+
+Instead of testing isolated URLs and guessing at Web Vitals, ChromeLens automates trace collection at scale—aggregating massive multi-megabyte trace payloads into deterministic bottleneck data (V8 compilation locks, layout thrashing, and unoptimized SPA hydration states).
 
 ![ChromeLens HTML Dashboard](assets/demo_screenshot.png)
 
-*Watch the dashboard in action: [Dashboard Walkthrough Animation](assets/demo_walkthrough.webp)*
+*Watch the dashboard trace in action: [Dashboard Walkthrough Animation](assets/demo_walkthrough.webp)*
 
 ---
 
-## 🚀 Features
+## 🚀 Core Capabilities
 
-- **Full-Site Crawling:** Automatically discovers and profiles pages using `sitemap.xml` and recursive Playwright link extraction. Discards external links and obeys `robots.txt`.
-- **Deep Trace Profiling:** Uses CDP `Performance.enable` and `Tracing.start` to capture low-level Chrome rendering metrics (Long Tasks, Layout Count, GC Pauses, Script Duration).
-- **Web Vitals Extraction:** Surfaces LCP, FCP, CLS, TTFB, and DOM interactive metrics via `PerformanceObserver`.
-- **Interaction Flow Profiling:** Trace and analyze multi-step user journeys (like searching, filling forms, and navigating Single Page Apps) with granular performance telemetry synced to visual frames!
-- **Third-Party Impact Scoring:** Groups all network requests by domain, highlighting which third-party scripts block rendering or bloat your page weight across the site.
-- **Interactive Dashboard:** Generates a single-file, zero-dependency HTML dashboard report with performance color coding, dynamic hardware timeline charts (built with Chart.js), and per-page deep dives.
-- **CI/CD Ready:** Includes a rich terminal summary output for fast regression detection in your pipelines.
+- **Automated Fleet Discovery:** Crawls and profiles entire site topologies concurrently via Playwright link extraction and sitemaps. Discards noise, obeys `robots.txt`.
+- **Deterministic CDP Tracing:** Captures low-level Chrome metrics directly from the protocol (Long Tasks >50ms, Garbage Collection pauses, Paint counts, Script execution bounds).
+- **Interactive Flow Telemetry:** Bypass static loads and programmatically script user journeys (clicks, form fills, SPA navigations) while continuously streaming hardware CPU and JS Heap utilization.
+- **Third-Party Payload Mapping:** Aggregates network waterfalls by domain to expose exactly which underlying ad networks or analytics scripts are hijacking your render cycle.
+- **CI/CD Ready:** Dumps machine-readable JSON artifacts and highly visual, zero-dependency HTML dashboards for immediate PR regression analysis.
 
 ---
 
 ## 🌊 Interaction Flow Profiling
+
 ChromeLens includes an advanced mode where you can bypass the standard static crawl and write programmatic Playwright scripts to emulate full user journeys (like adding an item to a cart or navigating a complex SPA).
 
 ![Flipkart Flow Demo Execution](assets/flipkart_flow.png)
 
 *Watch the dynamic chart react to simulated user interactions on Flipkart: [Demo Video](assets/flipkart_flow.webp)*
 
-By implementing `interaction_fn` inside `profile_flow`, the engine captures the Javascript Heap accumulations and Main Thread CPU activity specifically triggered by the user input, producing a hardware timeline synced perfectly to rendering filmstrips!
+By implementing `interaction_fn` inside `profile_flow`, the engine captures the Javascript Heap accumulations and Main Thread CPU activity specifically triggered by user input, producing a hardware timeline synced perfectly to visual rendering filmstrips!
 
 ---
 
-## 🛠️ Architecture
+## 🛠️ Systems Architecture
+
+ChromeLens is engineered across 4 distinct processing subsystems:
 
 ```mermaid
 graph TD
-    A[chromelens crawl] --> B[Discovery Engine]
-    B -->|Sitemap & Link Extraction| C(Discovered Pages)
-    C --> D[Profiler Engine]
-    D -->|Playwright + CDP| E(Traces, Network, Vitals)
-    E --> F[Analysis Engine]
-    F -->|Signal Extraction & Scoring| G(Health Scores)
-    G --> H[Report Generator]
-    H -->|Jinja2| I[HTML Dashboard]
-    H -->|Rich| J[CLI Summary]
+    A[Crawl Execution] --> B[Crawler & Discovery Subsystem]
+    B -->|Topology Map| C(Target Endpoints)
+    C --> D[CDP Telemetry Engine]
+    D -->|Playwright + Protocol Sockets| E(Trace Buffers, Network, Runtime)
+    E --> F[Trace Aggregation Layer]
+    F -->|Signal Extraction & Scoring| G(Bottleneck Signals)
+    G --> H[Reporting & Export Pipeline]
+    H -->|Jinja2| I[HTML Telemetry Dashboard]
+    H -->|Rich| J[Terminal Matrices]
 ```
 
-ChromeLens is composed of 4 main engines:
-1. **Discovery Engine:** Responsible for finding all same-origin pages up to a configured depth.
-2. **Profiler Engine:** Launches headless Chromium via Playwright, establishes a CDP session, and records performance metrics and trace JSON.
-3. **Analysis Engine:** Parses the raw trace JSON. It detects >50ms main-thread long tasks, counts layout/paint events, measures garbage collection (GC) duration, and aggregates network waterfall requests to grade performance.
-4. **Report Generator:** Compiles insights into a clean, modern HTML dashboard and console output.
+1. **Crawler & Discovery Subsystem:** Concurrently traverses DOM trees and sitemaps, respecting `robots.txt` and mapping same-origin topologies.
+2. **CDP Telemetry Engine:** Interfaces directly with Playwright to stream low-level Chrome DevTools Protocol events (Tracing, Network, Runtime) into memory buffers.
+3. **Trace Aggregation Layer:** Parses massive multi-megabyte JSON traces, isolating >50ms main-thread long tasks, identifying layout thrashing, and scoring third-party script bloat.
+4. **Reporting & Export Pipeline:** Serializes the normalized data structures into deterministic HTML artifact drops and machine-readable data for CI ingestion.
 
 ---
 
-## 📦 Installation
+## 📦 Quickstart
 
 ChromeLens requires Python 3.10+.
 
-1. Clone the repository:
+1. Clone and Install ChromeLens:
    ```bash
    git clone https://github.com/manishklach/chromelens.git
    cd chromelens
-   ```
-
-2. Install the package and dependencies:
-   ```bash
    pip install -e .
    ```
 
-3. Install the Playwright Chromium browser binary:
+2. Provision the Playwright Chromium binary:
    ```bash
    playwright install chromium
    ```
 
----
+3. Profile a target architecture (outputting to `reports/telemetry`):
+   ```bash
+   chromelens crawl https://example.com --max-pages 20 --output reports/telemetry
+   ```
 
-## 🚦 Usage
-
-Profile a website and output the HTML report to the `reports/demo` directory:
-
-```bash
-chromelens crawl https://example.com --output reports/demo --max-pages 10
-```
 *(If the `chromelens` command is not in your PATH, use `python -m chromelens.cli crawl ...`)*
 
-### Options:
-- `--output`, `-o`: Output directory for the HTML report and screenshots (default: `reports/chromelens`).
-- `--max-pages`: Maximum number of pages to profile (default: `20`).
-- `--max-depth`: Maximum crawl depth for link extraction (default: `3`).
-- `--headless`/`--headed`: Run the browser invisibly (default) or visibly.
-- `--screenshots`/`--no-screenshots`: Automatically capture full-page screenshots (default: `True`).
+### Config Options:
+- `--output`, `-o`: Dest for the HTML drop (default: `reports/chromelens`).
+- `--max-pages`: Bounding limit for discovered pages (default: `20`).
+- `--max-depth`: Max recursion depth (default: `3`).
+- `--headless`/`--headed`: Toggle Chrome visibility.
+- `--screenshots`: Toggle filmstrip / snapshot generation (default: `True`).
 
 ---
 
-## 📊 Health Scoring Rubric
+## 🗺️ Engineering Roadmap
 
-ChromeLens calculates a composite **0-100 Score** and **Letter Grade (A-F)** per page based on three pillars:
-
-- **Web Vitals (45%):** Penalizes poor Largest Contentful Paint (LCP > 2.5s) and Cumulative Layout Shift (CLS > 0.1).
-- **Performance (35%):** Penalizes high Total Blocking Time (TBT), >50ms long tasks, and excessive Garbage Collection (GC) pauses.
-- **Network (20%):** Penalizes excessive page weight (>2MB) and heavy third-party payload sizes.
+- **v0.2.x Current Framework:** Static fleet discovery, Vitals extraction, Third-party payload mapping, Interaction Flow CPU/Mem profiling.
+- **Near-term Pipeline:**
+  - Route Clustering (dynamically group `/products/1` and `/products/2` into a single template signature).
+  - CI Build Gating limits based on P99 Total Blocking Time.
+  - Native `.json` raw Chrome Trace exports for DevTools importing.
+- **Research Stage:**
+  - Performance Diffing (Overlay traces from PR builds vs Main branch).
+  - Statistical Anti-Flake Execution models.
 
 ---
 
