@@ -41,6 +41,31 @@ By implementing `interaction_fn` inside `profile_flow`, the engine captures the 
 
 ---
 
+## 📱 Network & Device Emulation
+
+ChromeLens allows you to simulate real-world conditions by throttling network speeds and emulating specific hardware devices. This is critical for understanding how your application performs on lower-end devices or unstable connections.
+
+### Demo: Wikipedia on Different Networks
+We profiled a Wikipedia article across various network profiles to see the impact on load times and TBT (Total Blocking Time).
+
+| Network Profile | Load Event (ms) | Total Blocking Time (ms) | Profile Duration (s) |
+| :--- | :---: | :---: | :---: |
+| **Native (Unthrottled)** | 628ms | 539ms | 3.78s |
+| **LTE (12 Mbps)** | 605ms | 378ms | 3.63s |
+| **Starbucks (5 Mbps)** | 1060ms | 356ms | 3.98s |
+| **Slow-3G (0.4 Mbps)** | 9000ms | 390ms | 13.16s |
+
+### Example Commands:
+```bash
+# Profile a site as a Pixel 5 on a Starbucks Wi-Fi connection
+chromelens crawl https://example.com --device "Pixel 5" --network "starbucks"
+
+# test your site's offline/service-worker behavior
+chromelens crawl https://example.com --network "offline"
+```
+
+---
+
 ## 🛠️ Systems Architecture
 
 ChromeLens is engineered across 4 distinct processing subsystems:
