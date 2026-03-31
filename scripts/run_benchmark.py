@@ -140,7 +140,10 @@ def generate_blog_html(global_results, india_results):
 <body>
   <nav>
     <a href="index.html" class="logo">🔬 ChromeLens</a>
-    <a href="https://github.com/manishklach/chromelens" style="color:var(--text-main); font-weight:600; text-decoration:none;">GitHub</a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="introducing-chromelens.html" style="color:var(--accent); font-weight:700; text-decoration:none; margin-right: 1rem;">Blog</a>
+      <a href="https://github.com/manishklach/chromelens" style="color:var(--text-main); font-weight:600; text-decoration:none;">GitHub</a>
+    </div>
   </nav>
 
   <div class="container">

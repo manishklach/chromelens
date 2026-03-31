@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introducing ChromeLens: Systems-Grade Web Performance Telemetry</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #0f172a;
+      --border: #1e293b;
+      --accent: #3b82f6;
+      --text-main: #cbd5e1;
+      --text-head: #f8fafc;
+      --font-ui: 'Inter', -apple-system, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    body { margin: 0; background-color: var(--bg); color: var(--text-main); font-family: var(--font-ui); line-height: 1.7; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+    .logo { color: var(--text-head); font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+    
+    .button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-head);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .button:hover { background: var(--border); }
+    .button.primary { background: var(--accent); border-color: var(--accent); }
+    .button.primary:hover { background: #2563eb; }
+    
+    .container { max-width: 800px; margin: 0 auto; padding: 4rem 1.5rem; }
+    header { text-align: center; margin-bottom: 4rem; }
+    
+    h1 { color: var(--text-head); font-size: 3.5rem; letter-spacing: -1px; margin-bottom: 1rem; line-height: 1.1; }
+    .meta { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+    
+    h2 { color: var(--text-head); font-size: 2rem; margin-top: 4rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    h3 { color: var(--text-head); font-size: 1.5rem; margin-top: 2.5rem; }
+    p { font-size: 1.1rem; margin-bottom: 1.5rem; }
+    
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    
+    .highlight-box {
+      background: var(--card-bg);
+      border-left: 4px solid var(--accent);
+      padding: 1.5rem 2rem;
+      border-radius: 4px;
+      margin: 2rem 0;
+      font-size: 1.1rem;
+    }
+    
+    ul, ol { font-size: 1.1rem; margin-bottom: 2rem; padding-left: 1.5rem; }
+    li { margin-bottom: 0.5rem; }
+    
+    img { width: 100%; border: 1px solid var(--border); border-radius: 6px; margin: 2rem 0; }
+    
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.875rem; margin-top: 4rem; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo" style="text-decoration:none;">🔬 ChromeLens</a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="introducing-chromelens.html" style="color:var(--accent); font-weight:700; text-decoration:none; margin-right: 1rem;">Blog</a>
+      <a href="benchmarks.html" style="color:var(--text-main); font-weight:600; text-decoration:none; margin-right: 1rem;">Top 50 Benchmarks</a>
+      <a href="https://github.com/manishklach/chromelens" class="button">GitHub</a>
+      <a href="index.html#install" class="button primary">Install</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <div class="meta">March 31, 2026 • Product Release Announcement</div>
+      <h1>Introducing ChromeLens: The MRI of Web Performance</h1>
+      <p style="font-size: 1.3rem; color: #94a3b8; max-width: 650px; margin: 0 auto;">Standard tools like Lighthouse give you a thermometer rating. ChromeLens gives you a deeply technical MRI scanner for your rendering pipeline.</p>
+    </header>
+
+    <div class="highlight-box">
+      <strong>TL;DR:</strong> ChromeLens is an open-source, systems-grade performance analysis engine that extracts deterministic <em>Chrome DevTools Protocol (CDP)</em> traces across your entire web architecture. We executed a relentless benchmark against 50 of the world's most complex monolithic web platforms to prove how powerful this telemetry really is. Check out the <a href="benchmarks.html">Benchmark Rankings here</a>.
+    </div>
+
+    <h2>The Lighthouse Problem</h2>
+    <p>If you're building a modern React, Vue, or Next.js Single Page Application, you've likely stared at a Google Lighthouse score and felt completely lost. A "Performance Score of 43" is just a synthesized snapshot—a single lab-simulated number pointing at a single landing page.</p>
+    <p>Lighthouse tells you that your "Total Blocking Time" is bad. But it doesn't give you the programmatic capacity to scale that test across your <em>entire</em> fleet, nor does it let you programmatically interact with an SPA, click buttons, wait for internal API fetches, and capture the exact V8 Javascript Engine thread lock that occurs when your data table hydrates.</p>
+    <p>We needed an engine that didn't just guess at "Web Vitals," but instead tapped incredibly low-level <strong>Chromium hardware signals</strong> across dozens of routes automatically. Thus, ChromeLens was born.</p>
+
+    <h2>How ChromeLens Works: The 4-Engine Architecture</h2>
+    <p>ChromeLens is not just another wrapper around Lighthouse. It completely bypasses simulated diagnostics by executing massive head-on concurrency strikes against target URLs using Playwright, while piping raw, multi-megabyte Chrome DevTools Protocol (CDP) sockets to extract <code>Tracing.dataCollected</code> artifacts.</p>
+
+    <ol>
+      <li><strong>Crawler & Discovery Subsystem:</strong> Instead of checking a single URL, ChromeLens traverses your DOM tree recursively, discovering your application architecture and fetching a fleet of endpoints.</li>
+      <li><strong>CDP Telemetry Engine:</strong> ChromeLens injects direct WebSocket connections into Chrome instances. We aren't polling DOM elements; we are listening to actual CPU processing cycles, garbage collection pauses, and paint intervals at the compiler level.</li>
+      <li><strong>Trace Aggregation Layer:</strong> After pulling raw, gigabyte-level Chrome tracing JSON files, this engine surgically maps out <strong>Long Tasks</strong> (main thread locks >50ms), attributing exactly which JavaScript runtime caused the bottleneck.</li>
+      <li><strong>Reporting & Pipeline Output:</strong> All this raw data is compiled into native, highly-visual Jinja2 HTML dashboards and flattened JSON artifacts ready for CI pipeline integration.</li>
+    </ol>
+
+    <h2>The Multi-Step "Interaction Flow" Tracer</h2>
+    <p>The biggest failure of standard performance profilers is that they only check the "Initial Load." But modern web apps exist long after the load event—users type in forms, filter lists, and add items to shopping carts.</p>
+    <p>ChromeLens pioneers <strong>Interactive Flow Profiling</strong>. You can programmatically script Playwright interactions directly middle-of-trace. The result? A perfectly synchronized filmstrip recording married to a Main-Thread CPU utilization chart, allowing you to debug exactly why a simple button-click caused a 4-second layout thrash.</p>
+    
+    <h2>The Monumental Global Benchmark</h2>
+    <p>To prove that ChromeLens can flawlessly handle enterprise-grade complexity, we wrote a fully automated execution harness to trace the <strong>Top 25 Global</strong> and <strong>Top 25 Indian</strong> web platforms.</p>
+    <p>The rules were simple: Deploy ChromeLens headlessly. Strip out sites using aggressive WAF (Web Application Firewall) bot-blocking mechanisms. Penetrate the rest, extract exactly 15 seconds of raw compilation, rendering, and hydration data, and rank them objectively based purely on <strong>Total Blocking Time</strong> and Javascript Heap growth.</p>
+    
+    <h3>The Hydration Penalty</h3>
+    <p>By executing this monumental benchmark, the resulting telemetry data exposed a clear, undeniable paradigm: <strong>The Hydration Penalty</strong>.</p>
+    <p>While massive tech platforms (like Facebook or Twitch) bloated their JS Heap Memory to 50MB+ loading massive ad-exchanges, their true pain point was JS execution limits. Gigantic client-side Single Page Applications suffered brutally in "Total Blocking Time" during their initial JavaScript framework hydration cycles.</p>
+    <p>Conversely, purely static documents (like Wikipedia) achieved perfect 0ms metrics, serving HTML natively without demanding the user's mobile device parse 2MB of V8 compilation trees before the page became interactive.</p>
+
+    <div class="highlight-box">
+      <strong>See the Data:</strong> We've natively published our findings into interactive hierarchy tables. <a href="benchmarks.html">Explore the Top 50 Benchmarks here</a>, and click on any individual domain to view its complete local ChromeLens interactive trace!
+    </div>
+
+    <h2>Get Started</h2>
+    <p>The web doesn't need another arbitrary scoring system. It needs deep, technical, accessible diagnostics.</p>
+    <p>ChromeLens is fully open-source. Install it today via pip, or clone the repository to run the exact same headless Telemetry Engine we used for our 50-site Global Benchmark against your own fleet infrastructure.</p>
+
+    <p style="text-align:center; margin-top: 3rem;">
+      <a href="https://github.com/manishklach/chromelens" class="button primary" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">View Source on GitHub</a>
+    </p>
+
+  </div>
+  
+  <footer>
+    <p>ChromeLens &copy; 2026. Released under the Apache-2.0 License.</p>
+  </footer>
+
+</body>
+</html>
