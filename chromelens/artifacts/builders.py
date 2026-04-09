@@ -9,16 +9,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from chromelens import __version__
-from chromelens.analysis import PageHealthScore, SiteHealthReport, TraceInsight
+from chromelens.analysis import SiteHealthReport, TraceInsight
+from chromelens.analysis.cls import build_cls_shift_artifacts
 from chromelens.analysis.templates import build_template_artifacts, load_route_pattern_rules
+from chromelens.analysis.third_party_cost import aggregate_third_party_cost, analyze_page_third_party_cost
 from chromelens.artifacts.models import (
-    CLSShiftArtifact,
     CrawlConfigArtifact,
     EnvironmentArtifact,
     PageArtifact,
     RunArtifact,
     RunSummaryArtifact,
-    ThirdPartyArtifact,
 )
 from chromelens.profiler import PageProfile
 
@@ -55,12 +55,8 @@ def build_run_artifact(
         if profile is None or insight is None:
             continue
 
-        page_third_parties = sorted(
-            _build_page_third_party_rows(profile, insight),
-            key=lambda item: (item.total_blocking_time_ms, item.total_bytes, item.domain),
-            reverse=True,
-        )
-        cls_shifts = _build_cls_shift_rows(profile)
+        page_third_parties = analyze_page_third_party_cost(profile, insight, report.site_url)
+        cls_shifts = build_cls_shift_artifacts(profile.layout_shifts)
 
         pages.append(
             PageArtifact(
@@ -92,6 +88,7 @@ def build_run_artifact(
                 third_party_bytes=sum(request.size_bytes for request in profile.network_requests if request.is_third_party),
                 third_party_request_count=sum(1 for request in profile.network_requests if request.is_third_party),
                 screenshot_path=profile.screenshot_path,
+                har_path=profile.har_path,
                 issues=list(score.issues),
                 third_parties=page_third_parties,
                 cls_shifts=cls_shifts,
@@ -105,21 +102,8 @@ def build_run_artifact(
         rules=rules,
     )
 
-    third_party_summary = sorted(
-        [
-            ThirdPartyArtifact(
-                key=impact.domain,
-                domain=impact.domain,
-                request_count=impact.request_count,
-                total_bytes=impact.total_bytes,
-                total_duration_ms=impact.total_duration_ms,
-                pages_present=impact.pages_present,
-                attribution_confidence="low",
-            )
-            for impact in report.third_party_impacts
-        ],
-        key=lambda item: (item.total_bytes, item.domain),
-        reverse=True,
+    third_party_summary = aggregate_third_party_cost(
+        [row for page in pages for row in page.third_parties],
     )
 
     return RunArtifact(
@@ -156,48 +140,3 @@ def build_run_artifact(
         templates=templates,
         third_party_summary=third_party_summary,
     )
-
-
-def _build_page_third_party_rows(profile: PageProfile, insight: TraceInsight) -> list[ThirdPartyArtifact]:
-    """Create per-page third-party rows using current network-only attribution."""
-    rows: dict[str, ThirdPartyArtifact] = {}
-    third_party_requests = [request for request in profile.network_requests if request.is_third_party and request.domain]
-    if not third_party_requests:
-        return []
-
-    total_third_party_bytes = sum(request.size_bytes for request in third_party_requests) or 1
-    for request in third_party_requests:
-        row = rows.get(request.domain)
-        if row is None:
-            row = ThirdPartyArtifact(key=request.domain, domain=request.domain)
-            rows[request.domain] = row
-        row.request_count += 1
-        row.total_bytes += request.size_bytes
-        row.total_duration_ms += request.duration_ms
-
-    # Approximate blocking time proportionally by third-party bytes for schema v1.
-    for row in rows.values():
-        byte_share = row.total_bytes / total_third_party_bytes
-        row.total_blocking_time_ms = insight.total_blocking_time_ms * byte_share
-        row.script_execution_ms = profile.cdp_metrics.script_duration_ms * byte_share
-        row.long_task_count = int(round(len(insight.long_tasks) * byte_share))
-        row.pages_present = 1
-        row.attribution_confidence = "low"
-        row.notes.append("Blocking and script time are approximated from byte share in schema v1.")
-
-    return sorted(rows.values(), key=lambda item: item.domain)
-
-
-def _build_cls_shift_rows(profile: PageProfile) -> list[CLSShiftArtifact]:
-    """Convert raw page metadata into artifact shifts if available."""
-    shifts: list[CLSShiftArtifact] = []
-    raw_shifts = getattr(profile, "layout_shifts", [])
-    for raw_shift in raw_shifts:
-        shifts.append(
-            CLSShiftArtifact(
-                timestamp_ms=float(raw_shift.get("timestamp_ms", 0.0)),
-                score=float(raw_shift.get("value", 0.0)),
-                had_recent_input=bool(raw_shift.get("had_recent_input", False)),
-            )
-        )
-    return shifts

@@ -189,6 +189,7 @@ class PageProfiler:
                     dom_complete_ms=float(vitals_raw.get("dom_complete_ms", 0)),
                     load_event_ms=float(vitals_raw.get("load_event_ms", 0)),
                 )
+                profile.layout_shifts = list(vitals_raw.get("layout_shifts", []))
             except Exception as exc:
                 LOGGER.warning("Failed to extract Web Vitals for %s: %s", url, exc)
 
@@ -310,6 +311,7 @@ class PageProfiler:
                     dom_complete_ms=float(vitals_raw.get("dom_complete_ms", 0)),
                     load_event_ms=float(vitals_raw.get("load_event_ms", 0)),
                 )
+                profile.layout_shifts = list(vitals_raw.get("layout_shifts", []))
             except Exception as exc:
                 LOGGER.warning("Failed to extract Web Vitals for flow %s: %s", name, exc)
 

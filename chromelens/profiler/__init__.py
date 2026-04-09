@@ -94,6 +94,8 @@ class PageProfile:
     network_requests: list[NetworkRequest] = field(default_factory=list)
     console_messages: list[ConsoleMessage] = field(default_factory=list)
     trace_events: list[dict] = field(default_factory=list)  # type: ignore[type-arg]
+    layout_shifts: list[dict] = field(default_factory=list)  # type: ignore[type-arg]
     screenshot_path: str | None = None
+    har_path: str | None = None
     error: str | None = None
     profile_duration_ms: float = 0.0
