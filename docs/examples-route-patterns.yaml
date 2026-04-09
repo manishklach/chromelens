@@ -1,0 +1,6 @@
+- pattern: "^/products/[^/]+$"
+  replacement: "/products/:id"
+  label: "Product Template"
+- pattern: "^/blog/\\d{4}/\\d{2}/[^/]+$"
+  replacement: "/blog/:year/:month/:slug"
+  label: "Blog Article Template"

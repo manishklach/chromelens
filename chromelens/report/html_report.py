@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from jinja2 import Environment, FileSystemLoader
 
 from chromelens.analysis import PageHealthScore, SiteHealthReport, TraceInsight
+from chromelens.artifacts.models import RunArtifact
 from chromelens.profiler import PageProfile
 
 LOGGER = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ def generate_html_report(
     profiles: list[PageProfile],
     insights: list[TraceInsight],
     output_path: Path,
+    artifact: RunArtifact | None = None,
 ) -> Path:
     """Generate a single-file HTML dashboard report."""
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
@@ -54,6 +56,7 @@ def generate_html_report(
 
     html = template.render(
         report=report,
+        artifact=artifact,
         page_details=page_details,
         page_labels=page_labels,
         page_scores_data=page_scores_data,

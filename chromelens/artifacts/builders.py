@@ -10,6 +10,7 @@ from pathlib import Path
 
 from chromelens import __version__
 from chromelens.analysis import PageHealthScore, SiteHealthReport, TraceInsight
+from chromelens.analysis.templates import build_template_artifacts, load_route_pattern_rules
 from chromelens.artifacts.models import (
     CLSShiftArtifact,
     CrawlConfigArtifact,
@@ -97,6 +98,13 @@ def build_run_artifact(
             )
         )
 
+    rules = load_route_pattern_rules(route_patterns)
+    pages, templates = build_template_artifacts(
+        pages,
+        strategy=template_clustering,
+        rules=rules,
+    )
+
     third_party_summary = sorted(
         [
             ThirdPartyArtifact(
@@ -140,11 +148,12 @@ def build_run_artifact(
             site_score=report.site_score,
             site_grade=report.site_grade,
             crawl_duration_sec=report.crawl_duration_sec,
-            template_count=0,
+            template_count=len(templates),
             third_party_count=len(third_party_summary),
             common_issues=list(report.common_issues),
         ),
         pages=pages,
+        templates=templates,
         third_party_summary=third_party_summary,
     )
 

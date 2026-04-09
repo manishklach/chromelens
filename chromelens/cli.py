@@ -42,6 +42,8 @@ def main(verbose: bool) -> None:
 @click.option("--network", type=click.Choice(["lte", "fast-3g", "slow-3g", "mcdonalds", "starbucks", "airport", "offline"]), default=None, help="Throttle network connection.")
 @click.option("--device", default=None, help="Emulate a specific mobile device (e.g. 'Pixel 5', 'iPhone 13').")
 @click.option("--artifact-path", default=None, help="Optional JSON run artifact path. Defaults to <output>/run.json.")
+@click.option("--template-clustering", type=click.Choice(["auto", "rules", "off"]), default="auto", help="Route template clustering strategy.")
+@click.option("--route-patterns", default=None, help="Optional JSON/YAML file with custom route normalization rules.")
 def crawl(
     url: str,
     output: str,
@@ -53,6 +55,8 @@ def crawl(
     network: str | None,
     device: str | None,
     artifact_path: str | None,
+    template_clustering: str,
+    route_patterns: str | None,
 ) -> None:
     """Crawl a website and generate a performance report.
 
@@ -126,8 +130,6 @@ def crawl(
     # Phase 4: Report
     print_cli_report(report)
 
-    html_path = output_dir / "report.html"
-    generate_html_report(report, profiles, trace_insights, html_path)
     run_artifact = build_run_artifact(
         report,
         profiles,
@@ -140,9 +142,13 @@ def crawl(
         filmstrip=filmstrip,
         network=network,
         device=device,
+        template_clustering=template_clustering,
+        route_patterns=route_patterns,
     )
     artifact_output_path = Path(artifact_path) if artifact_path else output_dir / "run.json"
     write_artifact_json(run_artifact, artifact_output_path)
+    html_path = output_dir / "report.html"
+    generate_html_report(report, profiles, trace_insights, html_path, artifact=run_artifact)
     console.print(f"  📄 HTML report: [cyan]{html_path}[/]")
     console.print(f"  🧾 Run artifact: [cyan]{artifact_output_path}[/]")
     console.print()

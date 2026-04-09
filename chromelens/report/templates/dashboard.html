@@ -337,6 +337,45 @@
     </div>
   </div>
 
+  {% if artifact and artifact.templates %}
+  <div class="card">
+    <h2><span class="icon">🧩</span> Template View</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Template</th>
+          <th>Pages</th>
+          <th>P50 TBT</th>
+          <th>P75 TBT</th>
+          <th>P95 TBT</th>
+          <th>P99 TBT</th>
+          <th>P75 LCP</th>
+          <th>P75 CLS</th>
+          <th>Avg 3P</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for template in artifact.templates | sort(attribute='tbt_summary.p99', reverse=True) %}
+        <tr>
+          <td>
+            <div style="font-weight: 600;">{{ template.label }}</div>
+            <div style="color: var(--text-dim); font-size: 0.8rem;">{{ template.signature }}</div>
+          </td>
+          <td>{{ template.page_count }}</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p50) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p75) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p95) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p99) }}ms</td>
+          <td>{{ "%.0f"|format(template.lcp_summary.p75) }}ms</td>
+          <td>{{ "%.3f"|format(template.cls_summary.p75) }}</td>
+          <td>{{ "%.1f"|format(template.avg_third_party_bytes / 1000) }}KB</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <!-- Common Issues -->
   {% if report.common_issues %}
   <div class="card">
@@ -395,6 +434,13 @@
       </summary>
       <div class="detail-body">
         <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">{{ page.score.url }}</p>
+        {% if artifact %}
+          {% for artifact_page in artifact.pages if artifact_page.url == page.score.url %}
+          <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">
+            <strong>Template:</strong> {{ artifact_page.template_signature }} · {{ artifact_page.template_reason }}
+          </p>
+          {% endfor %}
+        {% endif %}
 
         <div class="vitals-grid">
           <div class="vital-item">
