@@ -235,16 +235,9 @@ The repo also includes a sample GitHub Actions workflow at `.github/workflows/ch
 
 ---
 
-## 🗺️ Engineering Roadmap
+## 🧭 Roadmap
 
-- **v0.2.x Current Framework:** Static fleet discovery, Vitals extraction, Third-party payload mapping, Interaction Flow CPU/Mem profiling.
-- **Near-term Pipeline:**
-  - Stronger script URL attribution inside traces for higher-confidence third-party CPU accounting.
-  - More detailed screenshot overlays for CLS culprit visualization.
-  - Native `.json` raw Chrome Trace exports for DevTools importing.
-- **Research Stage:**
-  - Performance Diffing (Overlay traces from PR builds vs Main branch).
-  - Statistical Anti-Flake Execution models.
+See [docs/roadmap.md](docs/roadmap.md) for the current ChromeLens roadmap, including stabilization priorities, template controls, CI regression workflows, attribution improvements, and longer-term research directions.
 
 ---
 
