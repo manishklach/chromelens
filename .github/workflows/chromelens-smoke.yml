@@ -1,0 +1,23 @@
+name: ChromeLens Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  chromelens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ChromeLens image
+        run: docker build -t chromelens-ci .
+      - name: Run ChromeLens smoke crawl
+        run: |
+          mkdir -p reports
+          docker run --rm \
+            -v "${{ github.workspace }}/reports:/reports" \
+            chromelens-ci crawl https://example.com --max-pages 3 --output /reports/smoke --artifact-path /reports/smoke/run.json
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromelens-smoke-report
+          path: reports

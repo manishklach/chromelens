@@ -2,6 +2,26 @@
 
 EXTRACT_WEB_VITALS_JS = """
 () => {
+    const buildSelector = (node) => {
+        if (!node || !node.tagName) return '';
+        const tag = node.tagName.toLowerCase();
+        const elementId = node.id ? `#${node.id}` : '';
+        const classes = node.classList && node.classList.length
+            ? '.' + Array.from(node.classList).slice(0, 3).join('.')
+            : '';
+        return `${tag}${elementId}${classes}`;
+    };
+
+    const rectToObject = (rect) => {
+        if (!rect) return null;
+        return {
+            x: rect.x || 0,
+            y: rect.y || 0,
+            width: rect.width || 0,
+            height: rect.height || 0,
+        };
+    };
+
     const result = {
         lcp_ms: 0,
         fcp_ms: 0,
@@ -10,6 +30,7 @@ EXTRACT_WEB_VITALS_JS = """
         dom_interactive_ms: 0,
         dom_complete_ms: 0,
         load_event_ms: 0,
+        layout_shifts: [],
     };
 
     // Navigation Timing
@@ -42,6 +63,26 @@ EXTRACT_WEB_VITALS_JS = """
         if (!entry.hadRecentInput) {
             clsValue += entry.value;
         }
+
+        const sources = (entry.sources || []).map((source) => {
+            const node = source.node;
+            return {
+                selector: buildSelector(node),
+                node_id: '',
+                element_id: node && node.id ? node.id : '',
+                tag_name: node && node.tagName ? node.tagName.toLowerCase() : '',
+                classes: node && node.classList ? Array.from(node.classList).slice(0, 5) : [],
+                previous_rect: rectToObject(source.previousRect),
+                current_rect: rectToObject(source.currentRect),
+            };
+        });
+
+        result.layout_shifts.push({
+            value: entry.value,
+            had_recent_input: entry.hadRecentInput,
+            timestamp_ms: entry.startTime,
+            sources,
+        });
     }
     result.cls = clsValue;
 

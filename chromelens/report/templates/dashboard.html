@@ -337,6 +337,45 @@
     </div>
   </div>
 
+  {% if artifact and artifact.templates %}
+  <div class="card">
+    <h2><span class="icon">🧩</span> Template View</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Template</th>
+          <th>Pages</th>
+          <th>P50 TBT</th>
+          <th>P75 TBT</th>
+          <th>P95 TBT</th>
+          <th>P99 TBT</th>
+          <th>P75 LCP</th>
+          <th>P75 CLS</th>
+          <th>Avg 3P</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for template in artifact.templates | sort(attribute='tbt_summary.p99', reverse=True) %}
+        <tr>
+          <td>
+            <div style="font-weight: 600;">{{ template.label }}</div>
+            <div style="color: var(--text-dim); font-size: 0.8rem;">{{ template.signature }}</div>
+          </td>
+          <td>{{ template.page_count }}</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p50) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p75) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p95) }}ms</td>
+          <td>{{ "%.0f"|format(template.tbt_summary.p99) }}ms</td>
+          <td>{{ "%.0f"|format(template.lcp_summary.p75) }}ms</td>
+          <td>{{ "%.3f"|format(template.cls_summary.p75) }}</td>
+          <td>{{ "%.1f"|format(template.avg_third_party_bytes / 1000) }}KB</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <!-- Common Issues -->
   {% if report.common_issues %}
   <div class="card">
@@ -378,6 +417,41 @@
   </div>
   {% endif %}
 
+  {% if artifact and artifact.third_party_summary %}
+  <div class="card">
+    <h2><span class="icon">🚨</span> Estimated Third-Party Cost Wall of Shame</h2>
+    <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">
+      Main-thread blocking and script time are estimated from captured network evidence and may be approximate.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Blocking</th>
+          <th>Script</th>
+          <th>Long Tasks</th>
+          <th>Bytes</th>
+          <th>Pages</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for offender in artifact.third_party_summary[:15] %}
+        <tr>
+          <td>{{ offender.domain }}</td>
+          <td>{{ "%.0f"|format(offender.total_blocking_time_ms) }}ms</td>
+          <td>{{ "%.0f"|format(offender.script_execution_ms) }}ms</td>
+          <td>{{ offender.long_task_count }}</td>
+          <td>{{ "%.1f"|format(offender.total_bytes / 1000) }}KB</td>
+          <td>{{ offender.pages_present }}</td>
+          <td>{{ offender.attribution_confidence }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <!-- Page Details -->
   <div class="card">
     <h2><span class="icon">📄</span> Page Details</h2>
@@ -395,6 +469,65 @@
       </summary>
       <div class="detail-body">
         <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">{{ page.score.url }}</p>
+        {% if artifact %}
+          {% for artifact_page in artifact.pages if artifact_page.url == page.score.url %}
+          <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">
+            <strong>Template:</strong> {{ artifact_page.template_signature }} · {{ artifact_page.template_reason }}
+          </p>
+          {% if artifact_page.third_parties %}
+          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">Top Estimated Third-Party Offenders</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th>Blocking</th>
+                <th>Script</th>
+                <th>Bytes</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for offender in artifact_page.third_parties[:5] %}
+              <tr>
+                <td>{{ offender.domain }}</td>
+                <td>{{ "%.0f"|format(offender.total_blocking_time_ms) }}ms</td>
+                <td>{{ "%.0f"|format(offender.script_execution_ms) }}ms</td>
+                <td>{{ "%.1f"|format(offender.total_bytes / 1000) }}KB</td>
+                <td>{{ offender.attribution_confidence }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+          {% if artifact_page.cls_shifts %}
+          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">CLS Culprit Candidates</h4>
+          <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 12px;">
+            Layout-shift attribution is best-effort and depends on browser-provided source metadata.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Shift</th>
+                <th>Selector</th>
+                <th>Current Box</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for shift in artifact_page.cls_shifts[:5] %}
+                {% set culprit = shift.culprits[0] if shift.culprits else none %}
+                <tr>
+                  <td>{{ "%.3f"|format(shift.score) }} at {{ "%.0f"|format(shift.timestamp_ms) }}ms</td>
+                  <td>{% if culprit %}{{ culprit.selector or culprit.tag_name or culprit.node_id or "unknown" }}{% else %}unknown{% endif %}</td>
+                  <td>{% if culprit and culprit.current_rect %}x={{ "%.0f"|format(culprit.current_rect.x) }}, y={{ "%.0f"|format(culprit.current_rect.y) }}, w={{ "%.0f"|format(culprit.current_rect.width) }}, h={{ "%.0f"|format(culprit.current_rect.height) }}{% else %}-{% endif %}</td>
+                  <td>{% if culprit %}{{ culprit.confidence }}{% else %}unknown{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+          {% endfor %}
+        {% endif %}
 
         <div class="vitals-grid">
           <div class="vital-item">

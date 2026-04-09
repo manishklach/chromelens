@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChromeLens Diff Report</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242837;
+    --border: #2e3347;
+    --text: #e4e6f0;
+    --text-dim: #8b8fa7;
+    --green: #00d68f;
+    --amber: #ffaa00;
+    --red: #ff5757;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 18px; }
+  h1, h2 { margin: 0 0 12px; }
+  .muted { color: var(--text-dim); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-top: 16px; }
+  .stat { background: var(--surface2); padding: 18px; border-radius: 10px; }
+  .value { font-size: 1.6rem; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); }
+  .regression { color: var(--red); }
+  .improvement { color: var(--green); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-regression { background: rgba(255,87,87,0.12); color: var(--red); }
+  .badge-improvement { background: rgba(0,214,143,0.12); color: var(--green); }
+  .badge-added, .badge-removed { background: rgba(255,170,0,0.12); color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>ChromeLens Diff Report</h1>
+    <div class="muted">{{ diff.baseline_ref }} → {{ diff.candidate_ref }}</div>
+    <p class="muted" style="margin-top: 12px;">Diff artifacts are stable and CI-friendly, but they are not a statistical anti-flake system.</p>
+    <div class="stats">
+      <div class="stat"><div class="value regression">{{ diff.summary.regressions }}</div><div class="muted">Regressions</div></div>
+      <div class="stat"><div class="value improvement">{{ diff.summary.improvements }}</div><div class="muted">Improvements</div></div>
+      <div class="stat"><div class="value">{{ diff.summary.added }}</div><div class="muted">Added</div></div>
+      <div class="stat"><div class="value">{{ diff.summary.removed }}</div><div class="muted">Removed</div></div>
+    </div>
+    {% if diff.summary.failed_thresholds %}
+    <p class="regression" style="margin-top: 14px;">Thresholds failed: {{ diff.summary.failed_thresholds | join(", ") }}</p>
+    {% endif %}
+  </div>
+
+  {% for section_title, entries in [("Template Diffs", diff.template_diffs), ("Page Diffs", diff.page_diffs), ("Third-Party Diffs", diff.third_party_diffs)] %}
+  <div class="card">
+    <h2>{{ section_title }}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Label</th>
+          <th>Key Deltas</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td><span class="badge badge-{{ entry.status }}">{{ entry.status }}</span></td>
+          <td>{{ entry.label }}</td>
+          <td>
+            {% for metric_name, metric in entry.metrics.items() %}
+            <div class="{% if metric.status == 'regression' %}regression{% elif metric.status == 'improvement' %}improvement{% endif %}">
+              {{ metric_name }}: {{ "%.2f"|format(metric.baseline) }} → {{ "%.2f"|format(metric.candidate) }}
+              ({{ "%+.2f"|format(metric.absolute_delta) }}{% if metric.percent_delta is not none %}, {{ "%+.1f"|format(metric.percent_delta) }}%{% endif %})
+            </div>
+            {% endfor %}
+          </td>
+          <td>
+            {% for note in entry.notes %}
+            <div>{{ note }}</div>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+</body>
+</html>
