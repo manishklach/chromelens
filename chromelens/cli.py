@@ -11,13 +11,14 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from chromelens.analysis.health_scorer import HealthScorer
+from chromelens.analysis.diffing import diff_run_artifacts, load_run_artifact
 from chromelens.analysis.trace_analyzer import TraceAnalyzer
 from chromelens.artifacts.builders import build_run_artifact
 from chromelens.artifacts.serializer import write_artifact_json
 from chromelens.discovery.crawler import SiteCrawler
 from chromelens.profiler.page_profiler import PageProfiler
-from chromelens.report.cli_report import print_cli_report
-from chromelens.report.html_report import generate_html_report
+from chromelens.report.cli_report import print_cli_report, print_diff_report
+from chromelens.report.html_report import generate_diff_html_report, generate_html_report
 
 console = Console()
 LOGGER = logging.getLogger("chromelens")
@@ -152,6 +153,55 @@ def crawl(
     console.print(f"  📄 HTML report: [cyan]{html_path}[/]")
     console.print(f"  🧾 Run artifact: [cyan]{artifact_output_path}[/]")
     console.print()
+
+@main.command()
+@click.argument("baseline_artifact")
+@click.argument("candidate_artifact")
+@click.option("--output", "-o", default="reports/chromelens-diff", help="Output directory for diff artifacts.")
+@click.option("--fail-on-regression", is_flag=True, help="Return exit code 2 if any configured threshold fails.")
+@click.option("--max-tbt-regression-pct", type=float, default=None, help="Maximum allowed TBT regression percentage.")
+@click.option("--max-new-long-tasks", type=int, default=None, help="Maximum allowed increase in long task count.")
+@click.option("--max-cls-regression", type=float, default=None, help="Maximum allowed CLS regression.")
+@click.option("--max-script-duration-regression-pct", type=float, default=None, help="Maximum allowed ScriptDuration regression percentage.")
+def diff(
+    baseline_artifact: str,
+    candidate_artifact: str,
+    output: str,
+    fail_on_regression: bool,
+    max_tbt_regression_pct: float | None,
+    max_new_long_tasks: int | None,
+    max_cls_regression: float | None,
+    max_script_duration_regression_pct: float | None,
+) -> None:
+    """Diff two prior ChromeLens run artifacts without re-crawling."""
+    output_dir = Path(output)
+    baseline_path = Path(baseline_artifact)
+    candidate_path = Path(candidate_artifact)
+    baseline = load_run_artifact(baseline_path)
+    candidate = load_run_artifact(candidate_path)
+
+    diff_artifact = diff_run_artifacts(
+        baseline,
+        candidate,
+        baseline_ref=str(baseline_path),
+        candidate_ref=str(candidate_path),
+        max_tbt_regression_pct=max_tbt_regression_pct,
+        max_new_long_tasks=max_new_long_tasks,
+        max_cls_regression=max_cls_regression,
+        max_script_duration_regression_pct=max_script_duration_regression_pct,
+    )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    diff_json_path = output_dir / "diff.json"
+    diff_html_path = output_dir / "diff.html"
+    write_artifact_json(diff_artifact, diff_json_path)
+    generate_diff_html_report(diff_artifact, diff_html_path)
+    print_diff_report(diff_artifact)
+    console.print(f"  📄 HTML diff report: [cyan]{diff_html_path}[/]")
+    console.print(f"  🧾 JSON diff artifact: [cyan]{diff_json_path}[/]")
+
+    if fail_on_regression and diff_artifact.summary.failed_thresholds:
+        raise SystemExit(2)
 
 
 if __name__ == "__main__":

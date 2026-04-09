@@ -32,3 +32,8 @@ def write_artifact_json(artifact: Any, output_path: Path) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     return output_path
+
+
+def read_artifact_json(path: Path) -> dict[str, Any]:
+    """Read a previously written JSON artifact."""
+    return json.loads(path.read_text(encoding="utf-8"))

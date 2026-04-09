@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from jinja2 import Environment, FileSystemLoader
 
 from chromelens.analysis import PageHealthScore, SiteHealthReport, TraceInsight
-from chromelens.artifacts.models import RunArtifact
+from chromelens.artifacts.models import DiffArtifact, RunArtifact
 from chromelens.profiler import PageProfile
 
 LOGGER = logging.getLogger(__name__)
@@ -65,4 +65,15 @@ def generate_html_report(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
     LOGGER.info("HTML report written to %s", output_path)
+    return output_path
+
+
+def generate_diff_html_report(diff: DiffArtifact, output_path: Path) -> Path:
+    """Generate a standalone HTML diff report."""
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
+    template = env.get_template("diff_dashboard.html")
+    html = template.render(diff=diff)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(html, encoding="utf-8")
+    LOGGER.info("Diff HTML report written to %s", output_path)
     return output_path
