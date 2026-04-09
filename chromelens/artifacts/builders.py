@@ -102,8 +102,14 @@ def build_run_artifact(
         rules=rules,
     )
 
+    templates_by_domain: dict[str, set[str]] = {}
+    for page in pages:
+        for third_party in page.third_parties:
+            templates_by_domain.setdefault(third_party.domain, set()).add(page.template_signature or page.url)
+
     third_party_summary = aggregate_third_party_cost(
         [row for page in pages for row in page.third_parties],
+        templates_by_domain=templates_by_domain,
     )
 
     return RunArtifact(

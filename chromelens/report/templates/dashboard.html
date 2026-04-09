@@ -419,7 +419,10 @@
 
   {% if artifact and artifact.third_party_summary %}
   <div class="card">
-    <h2><span class="icon">🚨</span> Third-Party Cost Wall of Shame</h2>
+    <h2><span class="icon">🚨</span> Estimated Third-Party Cost Wall of Shame</h2>
+    <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px;">
+      Main-thread blocking and script time are estimated from captured network evidence and may be approximate.
+    </p>
     <table>
       <thead>
         <tr>
@@ -472,7 +475,7 @@
             <strong>Template:</strong> {{ artifact_page.template_signature }} · {{ artifact_page.template_reason }}
           </p>
           {% if artifact_page.third_parties %}
-          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">Top Third-Party Offenders</h4>
+          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">Top Estimated Third-Party Offenders</h4>
           <table>
             <thead>
               <tr>
@@ -497,7 +500,10 @@
           </table>
           {% endif %}
           {% if artifact_page.cls_shifts %}
-          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">CLS Culprits</h4>
+          <h4 style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">CLS Culprit Candidates</h4>
+          <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 12px;">
+            Layout-shift attribution is best-effort and depends on browser-provided source metadata.
+          </p>
           <table>
             <thead>
               <tr>

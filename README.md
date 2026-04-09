@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/chromelens.svg)](https://badge.fury.io/py/chromelens)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-ChromeLens is a systems-grade performance analysis engine. It crawls your entire web architecture, attaches Chrome DevTools Protocol (CDP) sockets to every route, and extracts low-level rendering pipeline traces to expose exactly what is blocking your main thread.
+ChromeLens is a systems-grade performance analysis engine. It crawls your web architecture, attaches Chrome DevTools Protocol (CDP) sockets to each route, and extracts low-level rendering pipeline traces to surface likely main-thread bottlenecks.
 
 ### The Telemetry Gap
 Lighthouse is a snapshot. It tells you a single page is slow. 
@@ -24,7 +24,7 @@ Instead of testing isolated URLs and guessing at Web Vitals, ChromeLens automate
 - **Automated Fleet Discovery:** Crawls and profiles entire site topologies concurrently via Playwright link extraction and sitemaps. Discards noise, obeys `robots.txt`.
 - **Deterministic CDP Tracing:** Captures low-level Chrome metrics directly from the protocol (Long Tasks >50ms, Garbage Collection pauses, Paint counts, Script execution bounds).
 - **Interactive Flow Telemetry:** Bypass static loads and programmatically script user journeys (clicks, form fills, SPA navigations) while continuously streaming hardware CPU and JS Heap utilization.
-- **Third-Party Payload Mapping:** Aggregates network waterfalls by domain to expose exactly which underlying ad networks or analytics scripts are hijacking your render cycle.
+- **Third-Party Payload Mapping:** Aggregates network waterfalls by domain and estimates which external scripts are contributing the most cost to your render path.
 - **CI/CD Ready:** Dumps stable machine-readable JSON artifacts, supports diffing prior runs, and generates highly visual HTML dashboards for immediate PR regression analysis.
 
 ---
@@ -136,8 +136,8 @@ Every crawl can now emit a stable `run.json` artifact containing:
 - crawl metadata
 - per-page vitals and trace summaries
 - template aggregates
-- third-party cost summaries
-- CLS culprit summaries
+- third-party cost summaries with explicit confidence/method labels
+- best-effort CLS culprit summaries
 
 Example:
 ```bash
@@ -182,6 +182,8 @@ This produces:
 - `diff.html`
 - a CI-friendly exit code of `2` when configured thresholds fail
 
+The diff engine is stable enough for CI gating, but it is not a statistical anti-flake system. Zero-baseline regressions are handled explicitly rather than silently treated as `0%`.
+
 ### Headless vs Headed Reality Check
 
 Run the same discovered route set in both browser modes:
@@ -200,6 +202,8 @@ ChromeLens writes:
 - `compare/mode-diff.json`
 - `compare/mode-diff.html`
 
+Headless versus headed comparisons are environment-sensitive and should be treated as a reality check, not an absolute source of truth.
+
 ### HAR Export
 
 Export HAR files alongside the regular report:
@@ -208,6 +212,8 @@ Export HAR files alongside the regular report:
 chromelens crawl https://example.com --export-har per-page
 chromelens crawl https://example.com --export-har both
 ```
+
+HAR output is intended for interoperability and inspection. It reflects ChromeLens' captured network view and does not claim full trace-level fidelity.
 
 ### Docker / CI
 

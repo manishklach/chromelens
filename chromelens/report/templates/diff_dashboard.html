@@ -42,6 +42,7 @@
   <div class="card">
     <h1>ChromeLens Diff Report</h1>
     <div class="muted">{{ diff.baseline_ref }} → {{ diff.candidate_ref }}</div>
+    <p class="muted" style="margin-top: 12px;">Diff artifacts are stable and CI-friendly, but they are not a statistical anti-flake system.</p>
     <div class="stats">
       <div class="stat"><div class="value regression">{{ diff.summary.regressions }}</div><div class="muted">Regressions</div></div>
       <div class="stat"><div class="value improvement">{{ diff.summary.improvements }}</div><div class="muted">Improvements</div></div>

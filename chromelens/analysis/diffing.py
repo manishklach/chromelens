@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from chromelens.artifacts.models import (
+    ARTIFACT_SCHEMA_VERSION,
     DiffArtifact,
     DiffEntryArtifact,
     DiffSummaryArtifact,
@@ -19,6 +20,12 @@ def load_run_artifact(path: Path) -> dict[str, Any]:
     payload = read_artifact_json(path)
     if payload.get("artifact_type") != "run":
         raise ValueError(f"{path} is not a ChromeLens run artifact")
+    schema_version = str(payload.get("schema_version", ""))
+    if schema_version != ARTIFACT_SCHEMA_VERSION:
+        raise ValueError(
+            f"{path} uses unsupported ChromeLens schema_version '{schema_version}'. "
+            f"Expected '{ARTIFACT_SCHEMA_VERSION}'."
+        )
     return payload
 
 
@@ -119,8 +126,11 @@ def _diff_collection(
             candidate_value = float(_resolve_field(cand, field))
             delta = candidate_value - baseline_value
             percent_delta = None
+            zero_baseline = False
             if baseline_value != 0:
                 percent_delta = (delta / baseline_value) * 100.0
+            elif candidate_value != 0:
+                zero_baseline = True
 
             status = _classify_metric(metric_name, delta)
             statuses.add(status)
@@ -129,6 +139,7 @@ def _diff_collection(
                 candidate=candidate_value,
                 absolute_delta=delta,
                 percent_delta=percent_delta,
+                zero_baseline=zero_baseline,
                 status=status,
             )
 
@@ -139,15 +150,11 @@ def _diff_collection(
             entry_status = "improvement"
 
         if "total_blocking_time_ms" in metrics and metrics["total_blocking_time_ms"].status == "regression":
-            notes.append(
-                "This change increases median blocking-related work on this entry."
-            )
+            notes.append("Blocking time increased on this entry.")
         if "script_duration_ms" in metrics and metrics["script_duration_ms"].status == "regression":
-            notes.append(
-                "This change increases median Script Execution time."
-            )
-        if key_field == "domain" and entry_status == "added":
-            notes.append(f"New third-party domain detected: {key}")
+            notes.append("Script execution time increased on this entry.")
+        if any(metric.zero_baseline and metric.status == "regression" for metric in metrics.values()):
+            notes.append("Regression from a zero baseline requires absolute-delta review.")
 
         diffs.append(
             DiffEntryArtifact(
@@ -210,7 +217,7 @@ def _evaluate_thresholds(
     if max_tbt_regression_pct is not None:
         worst = max(
             (
-                diff.metrics["total_blocking_time_ms"].percent_delta or 0.0
+                _threshold_delta_value(diff.metrics["total_blocking_time_ms"])
                 for diff in page_diffs
                 if "total_blocking_time_ms" in diff.metrics
             ),
@@ -243,7 +250,7 @@ def _evaluate_thresholds(
     if max_script_duration_regression_pct is not None:
         worst = max(
             (
-                diff.metrics["script_duration_ms"].percent_delta or 0.0
+                _threshold_delta_value(diff.metrics["script_duration_ms"])
                 for diff in page_diffs
                 if "script_duration_ms" in diff.metrics
             ),
@@ -252,3 +259,14 @@ def _evaluate_thresholds(
         results["max_script_duration_regression_pct"] = worst <= max_script_duration_regression_pct
 
     return results
+
+
+def _threshold_delta_value(metric: MetricDeltaArtifact) -> float:
+    """Return a deterministic threshold comparison value for percent-based metrics."""
+    if metric.status != "regression":
+        return 0.0
+    if metric.percent_delta is not None:
+        return metric.percent_delta
+    if metric.zero_baseline and metric.candidate > 0:
+        return float("inf")
+    return 0.0

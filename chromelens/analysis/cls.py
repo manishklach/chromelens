@@ -13,14 +13,15 @@ def build_cls_shift_artifacts(raw_shifts: list[dict]) -> list[CLSShiftArtifact]:
         for raw_culprit in raw_shift.get("sources", []):
             selector = str(raw_culprit.get("selector", "") or "")
             tag_name = str(raw_culprit.get("tag_name", "") or "")
-            element_id = str(raw_culprit.get("node_id", "") or "")
+            node_id = str(raw_culprit.get("node_id", "") or "")
+            element_id = str(raw_culprit.get("element_id", "") or "")
             classes = [str(value) for value in raw_culprit.get("classes", [])]
-            confidence = "high" if selector else "medium" if tag_name or element_id or classes else "low"
-            reason = "selector available from LayoutShift source" if selector else "partial node metadata only"
+            confidence = "high" if selector else "medium" if tag_name or element_id or node_id or classes else "low"
+            reason = "selector available from LayoutShift source" if selector else "partial node metadata only" if (tag_name or element_id or node_id or classes) else "no culprit metadata available"
             culprits.append(
                 CLSCulpritArtifact(
                     selector=selector,
-                    node_id=element_id,
+                    node_id=node_id,
                     tag_name=tag_name,
                     element_id=element_id,
                     classes=classes,

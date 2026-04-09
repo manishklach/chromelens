@@ -20,11 +20,32 @@ def test_match_route_template_slug_numeric() -> None:
     assert match.signature == "/products/:slug"
 
 
+def test_match_route_template_blog_year_month_before_generic_id() -> None:
+    match = match_route_template("https://example.com/blog/2024/05/post-title", strategy="auto")
+    assert match.signature == "/blog/:year/:month/post-title"
+
+
+def test_match_route_template_full_date() -> None:
+    match = match_route_template("https://example.com/archive/2024-05-01/story", strategy="auto")
+    assert match.signature == "/archive/:date/story"
+
+
+def test_match_route_template_avoids_over_clustering_short_suffix_slug() -> None:
+    match = match_route_template("https://example.com/docs/version-2", strategy="auto")
+    assert match.signature == "/docs/version-2"
+
+
 def test_match_route_template_custom_rule() -> None:
     rules = [RoutePatternRule(pattern=r"^/blog/\d{4}/\d{2}/[^/]+$", replacement="/blog/:year/:month/:slug", label="Blog Article Template")]
     match = match_route_template("https://example.com/blog/2026/04/hello-world", strategy="rules", rules=rules)
     assert match.signature == "/blog/:year/:month/:slug"
     assert match.label == "Blog Article Template"
+
+
+def test_match_route_template_custom_rule_overrides_heuristic() -> None:
+    rules = [RoutePatternRule(pattern=r"^/products/\d+$", replacement="/products/:product-id", label="Product Template")]
+    match = match_route_template("https://example.com/products/123", strategy="auto", rules=rules)
+    assert match.signature == "/products/:product-id"
 
 
 def test_load_route_pattern_rules_json(tmp_path: Path) -> None:

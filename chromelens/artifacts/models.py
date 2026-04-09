@@ -63,6 +63,7 @@ class ThirdPartyArtifact:
     pages_present: int = 0
     templates_present: int = 0
     attribution_confidence: str = "low"
+    attribution_method: str = "unknown"
     notes: list[str] = field(default_factory=list)
 
 
@@ -192,6 +193,7 @@ class MetricDeltaArtifact:
     candidate: float = 0.0
     absolute_delta: float = 0.0
     percent_delta: float | None = None
+    zero_baseline: bool = False
     status: str = "unchanged"
 
 

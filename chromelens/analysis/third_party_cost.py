@@ -44,11 +44,13 @@ def analyze_page_third_party_cost(profile: PageProfile, insight: TraceInsight, s
         if total_script_bytes > 0 and script_rows.get(row.domain):
             share = script_rows[row.domain] / total_script_bytes
             row.attribution_confidence = "medium"
-            row.notes.append("Blocking and script time approximated from third-party script byte share.")
+            row.attribution_method = "script_byte_share"
+            row.notes.append("Estimated from third-party script byte share.")
         else:
             share = row.total_bytes / total_third_party_bytes
             row.attribution_confidence = "low"
-            row.notes.append("Blocking and script time approximated from total third-party byte share.")
+            row.attribution_method = "total_byte_share"
+            row.notes.append("Estimated from total third-party byte share.")
 
         row.total_blocking_time_ms = insight.total_blocking_time_ms * share
         row.script_execution_ms = profile.cdp_metrics.script_duration_ms * share
@@ -87,11 +89,14 @@ def aggregate_third_party_cost(
         row.pages_present += page_row.pages_present
         if page_row.attribution_confidence == "medium":
             row.attribution_confidence = "medium"
-        row.notes.extend(page_row.notes[:1])
+        if row.attribution_method != "script_byte_share" and page_row.attribution_method:
+            row.attribution_method = page_row.attribution_method
+        row.notes.extend(page_row.notes)
 
     for domain, row in aggregated.items():
         if templates_by_domain:
             row.templates_present = len(templates_by_domain.get(domain, set()))
+        row.notes = _normalize_notes(row.notes, row.attribution_method)
 
     return sorted(
         aggregated.values(),
@@ -106,3 +111,13 @@ def _is_external(request: NetworkRequest, site_netloc: str) -> bool:
 
 def _is_script(request: NetworkRequest) -> bool:
     return request.resource_type == "script" or "javascript" in request.mime_type.lower()
+
+
+def _normalize_notes(notes: list[str], attribution_method: str) -> list[str]:
+    """Deduplicate page-level notes into one stable site-level explanation."""
+    normalized = sorted({note.strip() for note in notes if note.strip()})
+    if attribution_method == "script_byte_share":
+        return ["Estimated from third-party script byte share."]
+    if attribution_method == "total_byte_share":
+        return ["Estimated from total third-party byte share."]
+    return normalized

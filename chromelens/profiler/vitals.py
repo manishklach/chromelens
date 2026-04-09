@@ -68,7 +68,8 @@ EXTRACT_WEB_VITALS_JS = """
             const node = source.node;
             return {
                 selector: buildSelector(node),
-                node_id: node && node.id ? node.id : '',
+                node_id: '',
+                element_id: node && node.id ? node.id : '',
                 tag_name: node && node.tagName ? node.tagName.toLowerCase() : '',
                 classes: node && node.classList ? Array.from(node.classList).slice(0, 5) : [],
                 previous_rect: rectToObject(source.previousRect),

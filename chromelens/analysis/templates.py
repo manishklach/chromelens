@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from statistics import mean, median
+from statistics import mean
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -18,7 +18,7 @@ UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{
 INTEGER_RE = re.compile(r"^\d+$")
 HEX_RE = re.compile(r"^[0-9a-f]{16,}$", re.IGNORECASE)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-SLUG_NUMERIC_RE = re.compile(r"^(?P<slug>[a-z0-9-]+)-(?P<num>\d{2,})$", re.IGNORECASE)
+SLUG_NUMERIC_RE = re.compile(r"^(?P<slug>[a-z][a-z0-9-]{2,})-(?P<num>\d{4,})$", re.IGNORECASE)
 YEAR_RE = re.compile(r"^\d{4}$")
 MONTH_RE = re.compile(r"^(0?[1-9]|1[0-2])$")
 
@@ -205,25 +205,25 @@ def _heuristic_signature(path: str) -> tuple[str, str]:
     normalized_segments: list[str] = []
     replacements: list[str] = []
 
-    for segment in segments:
+    for index, segment in enumerate(segments):
         lowered = segment.lower()
         replacement = segment
         if UUID_RE.match(lowered):
             replacement = ":uuid"
         elif DATE_RE.match(lowered):
             replacement = ":date"
-        elif INTEGER_RE.match(lowered):
-            replacement = ":id"
+        elif YEAR_RE.match(lowered) and _looks_like_date_context(segments, index):
+            replacement = ":year"
+        elif MONTH_RE.match(lowered) and _looks_like_date_context(segments, index):
+            replacement = ":month"
         elif HEX_RE.match(lowered):
             replacement = ":hex"
+        elif INTEGER_RE.match(lowered):
+            replacement = ":id"
         else:
             slug_match = SLUG_NUMERIC_RE.match(lowered)
             if slug_match:
                 replacement = ":slug"
-            elif YEAR_RE.match(lowered):
-                replacement = ":year"
-            elif MONTH_RE.match(lowered):
-                replacement = ":month"
 
         if replacement != segment:
             replacements.append(f"{segment}->{replacement}")
@@ -234,6 +234,20 @@ def _heuristic_signature(path: str) -> tuple[str, str]:
     if replacements:
         reason = f"heuristic normalization ({', '.join(replacements[:3])})"
     return signature, reason
+
+
+def _looks_like_date_context(segments: list[str], index: int) -> bool:
+    """Only treat year/month markers specially in date-like route structures."""
+    current = segments[index].lower()
+    if DATE_RE.match(current):
+        return True
+    next_segment = segments[index + 1].lower() if index + 1 < len(segments) else ""
+    prev_segment = segments[index - 1].lower() if index > 0 else ""
+    if YEAR_RE.match(current):
+        return bool(MONTH_RE.match(next_segment) or DATE_RE.match(next_segment))
+    if MONTH_RE.match(current):
+        return bool(YEAR_RE.match(prev_segment) or DATE_RE.match(prev_segment))
+    return False
 
 
 def _label_from_signature(signature: str) -> str:
